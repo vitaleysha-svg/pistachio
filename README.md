@@ -1,13 +1,22 @@
-# Pistachio Life OS
+# Life OS
 
-AI-powered productivity system for non-technical operators. This is a ready-to-clone repo that gives you a persistent AI Chief of Staff running in Claude Code.
+AI-powered productivity system for operators. A ready-to-clone repo that gives you a persistent AI Chief of Staff running in Claude Code.
 
 ## What This Is
 
-A complete system for running Claude Code as your technical co-founder. You talk naturally, Claude does the technical work.
+A complete system for running Claude Code as your technical co-founder. You talk naturally, Claude does the work.
 
-**Built for:** Non-technical operators who want AI to handle the implementation
-**Based on:** Matt's Life OS architecture + Ralph-Driven Development
+**Built for:** Operators who want AI to handle implementation
+**Based on:** Ralph-Driven Development + Life OS architecture
+
+## What Makes This Valuable
+
+- **Ralph Loop** - AI works through tasks autonomously (prd.json + passes: true/false)
+- **Learned Mistakes** - Same mistake never happens twice (compounds forever)
+- **Session Tracking** - Daily logs, context recovery, persistent memory
+- **Skills System** - Domain knowledge loads on-demand
+- **Three Modes** - Self-awareness framework for productivity patterns
+- **CoS Task Intake** - Elon's 5-Step applied to every task
 
 ## Quick Start (Windows)
 
@@ -25,15 +34,13 @@ A complete system for running Claude Code as your technical co-founder. You talk
    ```
 5. Clone this repo:
    ```powershell
-   git clone https://github.com/YOUR-USERNAME/pistachio.git
-   cd pistachio
+   git clone https://github.com/YOUR-USERNAME/life-os.git
+   cd life-os
    ```
 6. Start Claude:
    ```powershell
    claude
    ```
-
-Claude reads the CLAUDE.md file automatically and knows the full context.
 
 ## Quick Start (Mac)
 
@@ -45,8 +52,8 @@ brew install node
 npm install -g @anthropic-ai/claude-code
 
 # Clone and start
-git clone https://github.com/YOUR-USERNAME/pistachio.git
-cd pistachio
+git clone https://github.com/YOUR-USERNAME/life-os.git
+cd life-os
 claude
 ```
 
@@ -54,49 +61,60 @@ claude
 
 Just talk naturally:
 - "Where are we on the project?"
-- "I need to set up image generation"
-- "Help me train a LoRA model"
 - "What should I work on today?"
+- "Help me with [task]"
+- "I'm stuck on [problem]"
 
 Claude will:
-- Figure out what needs to happen technically
-- Install dependencies
-- Write code
-- Guide you through step-by-step
-- Track progress automatically
-
-**You never write code.** Claude does that.
+- Figure out what needs to happen
+- Break it into tasks
+- Track progress
+- Guide you step-by-step
+- Learn from mistakes
 
 ## File Structure
 
 ```
-pistachio/
-├── CLAUDE.md                    # Claude's instructions (read this to understand the system)
+life-os/
+├── CLAUDE.md                    # Claude's operating system (customize this)
 ├── README.md                    # You are here
-├── PROJECT-PISTACHIO-PLAN.md    # Master project plan
-├── WINDOWS-SETUP.md             # Detailed Windows setup guide
 ├── context/
-│   └── pistachio-context.md     # Full project context
-├── knowledge-base/
-│   ├── image-gen-workflow.md    # How to generate images
-│   ├── face-consistency.md      # LoRA, IP-Adapter techniques
-│   ├── prompts-library.md       # Working prompts
-│   ├── funnel-playbook.md       # Conversion funnel design
-│   ├── dm-psychology.md         # DM bot training
-│   ├── content-strategy.md      # What content to post
-│   └── video-gen-workflow.md    # Video generation
-├── autonomous-research/
-│   ├── GOLD-pistachio.md        # Top insights (9+ rated)
-│   ├── findings-YYYY-MM-DD.md   # Daily research
-│   ├── predictions.md           # Market predictions
-│   ├── recommendations.md       # Action recommendations
-│   ├── pending-tasks.md         # Task queue
-│   └── memory.md                # Agent memory between sessions
+│   ├── AI-CODING-WORKFLOW.md    # Ralph workflow documentation
+│   ├── goals.md                 # Your goals and identity (fill this in)
+│   ├── patterns.md              # Behavioral patterns to watch for
+│   └── projects/
+│       └── [project-name]/      # Project-specific context
+│           ├── context.md
+│           └── SKILL.md
 ├── data/
 │   └── daily-logs/              # What happened each day
+│       └── YYYY-MM-DD.md
+├── knowledge-base/              # Domain knowledge
+├── autonomous-research/         # Research findings
+│   ├── GOLD-[topic].md          # Top insights
+│   ├── findings-YYYY-MM-DD.md   # Daily research
+│   ├── predictions.md
+│   ├── recommendations.md
+│   ├── pending-tasks.md
+│   └── memory.md                # Agent memory between sessions
 ├── tools/                       # Technical tools
 └── outputs/                     # Generated content
 ```
+
+## Setup (First Time)
+
+1. **Fill in your identity** - Edit `context/goals.md`:
+   - Professional Identity
+   - Mission
+   - Current Primary Goal
+   - Identity Statements
+   - Values
+
+2. **Customize CLAUDE.md** - Replace `[YOUR NAME]` placeholders
+
+3. **Add your project** - Create `context/projects/[your-project]/context.md`
+
+4. Start Claude and say "Let's get started"
 
 ## Core Concepts
 
@@ -110,7 +128,7 @@ For any multi-step task:
 5. Move to next task
 6. Repeat until all pass
 
-Claude does this automatically for complex work.
+Claude does this automatically.
 
 ### Learned Mistakes (How The System Gets Smarter)
 
@@ -125,13 +143,22 @@ When something goes wrong, it gets added to the Learned Mistakes section in CLAU
 
 This knowledge compounds. Same mistake never happens twice.
 
+### Three Modes (Self-Awareness)
+
+Define your own three modes:
+- **Lead Mode** - Balanced, grounded, connected (this should lead)
+- **Execute Mode** - Analytical, sharp, executing (useful tool)
+- **Fear Mode** - Avoidant, defensive (warning sign)
+
+Use the SUCCESS/FAILURE diagnostics in `context/patterns.md` to identify which mode is active.
+
 ### Session Protocol
 
 Every session, Claude automatically:
 1. Runs `date` to know the time
-2. Reads memory.md for context
+2. Reads context files
 3. Reads today's daily log
-4. Checks pending-tasks.md
+4. Checks pending tasks
 5. Gives you a quick status
 
 You just say what you want to work on.
@@ -139,10 +166,10 @@ You just say what you want to work on.
 ## Daily Workflow
 
 1. Open terminal
-2. `cd pistachio`
+2. `cd life-os`
 3. `claude`
 4. Tell Claude what you want to work on
-5. Claude does the technical work
+5. Claude handles the rest
 6. When done: "Done for today"
 
 ## Troubleshooting
@@ -163,11 +190,30 @@ Run PowerShell as Administrator.
 ### Context lost
 Say "recover context" - Claude will read the recovery files and continue.
 
+## Adding Projects
+
+Create a new project folder:
+```
+context/projects/my-project/
+├── context.md    # Full project context
+└── SKILL.md      # Skill definition for Claude
+```
+
+SKILL.md format:
+```markdown
+---
+name: my-project
+description: What this project is about
+---
+# My Project
+
+Reference files and key information here.
+```
+
 ## License
 
 MIT - Do whatever you want with this.
 
 ---
 
-*System based on Matt's Life OS architecture*
 *Last updated: 2026-02-05*
