@@ -1,0 +1,66 @@
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Editor files
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+*.sublime-*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+venv/
+env/
+.env
+*.egg-info/
+dist/
+build/
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Generated outputs (keep structure, ignore content)
+outputs/*.png
+outputs/*.jpg
+outputs/*.mp4
+outputs/*.wav
+outputs/*.mp3
+
+# Sensitive data
+*.env
+.env.*
+secrets/
+credentials/
+*.key
+*.pem
+
+# Logs that shouldn't be committed
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Model files (too large for git)
+*.ckpt
+*.safetensors
+*.pt
+*.pth
+models/
+
+# Keep these directories even if empty
+!outputs/.gitkeep
+!data/.gitkeep
+!tools/.gitkeep
+*.mp4
