@@ -307,14 +307,25 @@ On session start, read:
 
 ## Context Recovery Protocol
 
-**When context compacts mid-session:**
+**BEFORE context compacts (PRE-COMPACT DUMP - MANDATORY):**
+When you sense the conversation is getting long, or the user says "track this" / "save progress" / "make sure this is tracked":
+1. IMMEDIATELY update `PROGRESS.md` with:
+   - What we just did
+   - What we're working on right now
+   - What the next steps are
+   - Any decisions made this session
+   - Any blockers or open questions
+2. This is NON-NEGOTIABLE. If the user reminds you, dump state to PROGRESS.md before doing anything else.
+
+**When context compacts mid-session (POST-COMPACT RECOVERY):**
 1. Check current time with `date` command
-2. Read today's daily log: `data/daily-logs/YYYY-MM-DD.md`
-3. Read `context/patterns.md` to understand ongoing work
-4. Check recent work: last session in daily log, current ONE THING
-5. If coding project: Read AGENTS.md, prd.json, progress.txt
-6. **Don't ask "what were we doing?"** - infer from the above files
-7. Continue where you left off seamlessly
+2. Read `PROGRESS.md` FIRST - this is the live state tracker
+3. Read today's daily log: `data/daily-logs/YYYY-MM-DD.md`
+4. Read `PROJECT-PISTACHIO-PLAN.md` for project context
+5. Check recent work: last session in daily log, current ONE THING
+6. If coding project: Read AGENTS.md, prd.json, progress.txt
+7. **Don't ask "what were we doing?"** - infer from the above files
+8. Continue where you left off seamlessly
 
 **This is automatic - do it without being asked.**
 
