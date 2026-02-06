@@ -1,13 +1,20 @@
 # Pistachio Progress Tracker
 # AUTO-COMPACT RECOVERY FILE - Claude dumps state here before/during every session
 
-## Last Updated: 2026-02-06 (evening session)
+## Last Updated: 2026-02-06 (night session)
 
-## Current Phase: PRE-LAUNCH SETUP - ComfyUI Ready
+## Current Phase: PRE-LAUNCH SETUP - Prompt System Built
 
 ## What Just Happened (Latest Session)
-- Deployed NEW pod with official ComfyUI template (yabbering_orange_mammal)
-- Pod ID: h74hl96oos9brr
+- Built prompt reverse-engineering system (knowledge-base/prompt-reverse-engineering.md)
+- Created iteration log (knowledge-base/prompt-iterations.md)
+- Created prd.json for Ralph Loop tracking
+- Persona changed: Egyptian/Brazilian -> Japanese/Brazilian mix
+- Moved AI-CODING-WORKFLOW.md from @import to on-demand skill (.claude/skills/ralph-workflow/)
+- Set CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=70 in settings.json
+- Fixed GitHub push rule - repo IS private, pushing is part of workflow
+- Previous: Deployed NEW pod with official ComfyUI template (yabbering_orange_mammal)
+- Previous: Pod ID: h74hl96oos9brr
 - ComfyUI is WORKING and accessible via web browser
 - Installed custom nodes via ComfyUI Manager:
   - ✅ ComfyUI-InstantID (ID 43)

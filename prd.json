@@ -1,0 +1,40 @@
+{
+  "name": "Prompt Reverse-Engineering System",
+  "description": "Build a system that takes a screenshot of a real person, decomposes visual attributes, and outputs MJ/ComfyUI prompts to generate a similar-looking AI character. Compounds learning over iterations.",
+  "features": [
+    {
+      "id": 1,
+      "priority": 1,
+      "story": "Create the master workflow doc (knowledge-base/prompt-reverse-engineering.md) with step-by-step visual decomposition framework, attribute-to-prompt mapping, MJ parameter reference, ComfyUI parameter reference, and Playwright automation notes for future autonomy",
+      "acceptance": "File exists, covers all decomposition categories, maps to MJ syntax, includes ComfyUI params, has Playwright section",
+      "passes": false
+    },
+    {
+      "id": 2,
+      "priority": 2,
+      "story": "Create the iteration log (knowledge-base/prompt-iterations.md) that compounds learning - each entry: screenshot input description, prompt generated, output result, user feedback, adjustments, patterns extracted",
+      "acceptance": "File exists with clear template, ready to accept first iteration entry",
+      "passes": false
+    },
+    {
+      "id": 3,
+      "priority": 3,
+      "story": "Update all project files from Egyptian/Brazilian to Japanese/Brazilian mix persona",
+      "acceptance": "No references to Egyptian remain. Japanese/Brazilian reflected in prompts-library, content-strategy, image-gen-workflow, PROGRESS.md, operations manual",
+      "passes": false
+    },
+    {
+      "id": 4,
+      "priority": 4,
+      "story": "Run first iteration - user provides screenshot, Claude decomposes it using the workflow, generates MJ + ComfyUI prompts, user tests, feedback logged to iteration log",
+      "acceptance": "First entry in prompt-iterations.md with full decomposition and generated prompts",
+      "passes": false
+    }
+  ],
+  "notes": [
+    "Ralph workflow: ONE task at a time",
+    "Build after EVERY change",
+    "Use subagents for file reads >100 lines",
+    "No git push - local only"
+  ]
+}

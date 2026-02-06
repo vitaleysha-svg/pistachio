@@ -1,6 +1,7 @@
 # Life OS - Personal Productivity System
 
-@context/AI-CODING-WORKFLOW.md
+<!-- Ralph workflow loaded as on-demand skill: .claude/skills/ralph-workflow/SKILL.md -->
+<!-- Invoke with /ralph-workflow or auto-loads when coding tasks have 3+ steps -->
 
 ---
 
@@ -422,3 +423,38 @@ Example:
 -->
 
 <!-- Add your mistakes below this line -->
+
+### #1: Ignored Session Start Protocol (2026-02-06)
+**Mistake:** On fresh session start, jumped straight into user request without reading context files first. Didn't auto-read goals.md, patterns.md, daily logs, or project context. Had to be told to follow the workflow.
+**Root cause:** Treated the session as a generic Claude Code session instead of following the CLAUDE.md Session Start Protocol.
+**Rule:** On EVERY session start, BEFORE responding to the user's first message, read: 1) context/goals.md, 2) context/patterns.md, 3) Today's daily log, 4) PROGRESS.md, 5) Active project context. This is non-negotiable.
+**Trigger:** Every single session start. No exceptions.
+**Severity:** CRITICAL - The entire Life OS value prop depends on Claude knowing context without being reminded.
+
+### #2: Didn't use Ralph Loop or Task system (2026-02-06)
+**Mistake:** Started working without creating a prd.json or using Claude Code's Task system. Didn't follow AI-CODING-WORKFLOW.md at all. Fired off large parallel reads that blew context instead of using subagents.
+**Root cause:** Ignored the project's own workflow documentation. Worked like a generic assistant instead of following the established system.
+**Rule:** For ANY multi-step task (3+ steps): 1) Create prd.json with detailed plan, 2) Create Tasks with dependencies, 3) Use subagents for heavy reads to keep main context clean, 4) Work through tasks one at a time per Ralph Loop.
+**Trigger:** Any time a task has 3+ steps or involves exploring/building.
+**Severity:** HIGH - Defeats the purpose of the entire workflow system and wastes context.
+
+### #3: CORRECTED - Repo IS private on GitHub (2026-02-06)
+**Original mistake:** Assumed repo couldn't be pushed. Was told it wasn't private.
+**Correction:** Verified via `gh repo view` - repo `vitaleysha-svg/pistachio` IS private. Remote is configured.
+**Rule:** Repo is private. Push to GitHub as part of regular workflow. Always verify with `gh repo view --json isPrivate` if unsure. Commit and push after completing work.
+**Trigger:** After completing tasks or when user asks to push.
+**Severity:** RESOLVED.
+
+### #4: Context explosions from parallel reads in main context (2026-02-06)
+**Mistake:** Fired off multiple large file reads (400+ lines each) in parallel within the main context window. Autocompact only triggers between turns, so mid-turn context overflow crashes the session.
+**Root cause:** Treated all file reads equally instead of using subagents for heavy content. Also, base context is massive (~850 lines from CLAUDE.md + @AI-CODING-WORKFLOW.md import).
+**Rule:** 1) ALWAYS use subagents (Task tool) for reading files >100 lines or reading 3+ files at once. 2) Keep main context for summaries and implementation only. 3) CLAUDE_AUTOCOMPACT_PCT_OVERRIDE set to 70% in settings.json to trigger earlier. 4) Before any heavy operation, check context pressure - if approaching limit, compact first.
+**Trigger:** Any time reading multiple files, exploring codebase, or doing research.
+**Severity:** CRITICAL - Crashes the session and loses all work in progress.
+
+### #5: @import of 400-line file in CLAUDE.md ate half the context window (2026-02-06)
+**Mistake:** CLAUDE.md had `@context/AI-CODING-WORKFLOW.md` on line 3 which imported the entire 400+ line Ralph workflow as system context on EVERY session. Combined with CLAUDE.md itself (~450 lines), that's ~850 lines of immovable base context before any work begins.
+**Root cause:** Didn't recognize that @imports in CLAUDE.md are always-on system context, not on-demand. Domain-specific workflow knowledge was treated as global rules.
+**Rule:** 1) NEVER @import large files in CLAUDE.md. 2) Domain knowledge goes in `.claude/skills/` (loads on demand). 3) CLAUDE.md = core principles only (lean). 4) Skills = specialized knowledge (loaded when relevant). 5) The AI-CODING-WORKFLOW.md is now a skill at `.claude/skills/ralph-workflow/SKILL.md`.
+**Trigger:** Any time adding content to CLAUDE.md or creating new reference docs.
+**Severity:** CRITICAL - Permanently wastes ~40% of usable context on every single session.
