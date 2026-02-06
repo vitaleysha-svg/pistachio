@@ -1,18 +1,61 @@
 # Pistachio Progress Tracker
 # AUTO-COMPACT RECOVERY FILE - Claude dumps state here before/during every session
 
-## Last Updated: 2026-02-06 (night session)
+## Last Updated: 2026-02-06 (late night session)
 
-## Current Phase: PRE-LAUNCH SETUP - Prompt System Built
+## Current Phase: PRE-LAUNCH SETUP - Models Installed, Ready to Build Workflow
 
 ## What Just Happened (Latest Session)
+- Pod migrated to new GPU (yabbering_orange_mammal-migration, ID: h0r68bqsw0lepy)
+- OLD pod (h74hl96oos9brr) should be deleted if not already
+- ALL models downloaded and verified:
+  - InsightFace antelopev2 (face detection) - /workspace/runpod-slim/ComfyUI/models/insightface/models/antelopev2/
+  - InstantID ip-adapter.bin (face copying) - /workspace/runpod-slim/ComfyUI/models/instantid/
+  - InstantID ControlNet (face structure) - /workspace/runpod-slim/ComfyUI/models/controlnet/instantid-controlnet.safetensors
+  - IP-Adapter FaceID plusv2 SDXL - /workspace/runpod-slim/ComfyUI/models/ipadapter/
+  - RealVisXL v5 checkpoint (6.5GB) - /workspace/runpod-slim/ComfyUI/models/checkpoints/realvisxl_v5.safetensors
+- Reinstalled ComfyUI_InstantID custom node (fresh git clone from cubiq)
+- Installed insightface + onnxruntime-gpu dependencies
+- InstantID nodes now show up in ComfyUI (Apply InstantID, Apply InstantID Advanced, InstantID Apply ControlNet)
+- First reference image decomposed (Fukushima Larissa - Japanese/Brazilian, 21)
+- MJ prompts generated in prompt-reverse-engineering workflow
 - Built prompt reverse-engineering system (knowledge-base/prompt-reverse-engineering.md)
 - Created iteration log (knowledge-base/prompt-iterations.md)
 - Created prd.json for Ralph Loop tracking
 - Persona changed: Egyptian/Brazilian -> Japanese/Brazilian mix
-- Moved AI-CODING-WORKFLOW.md from @import to on-demand skill (.claude/skills/ralph-workflow/)
-- Set CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=70 in settings.json
-- Fixed GitHub push rule - repo IS private, pushing is part of workflow
+
+## What We're Doing RIGHT NOW
+- Building InstantID workflow in ComfyUI - connecting nodes
+- Reference face image UPLOADED (Pistachio741_Mixed_Japanese-Br...)
+- All models loaded and working
+- Connections completed so far (7 of 14):
+  1. Load Checkpoint MODEL → Apply InstantID model (DONE)
+  2. Load Image IMAGE → Apply InstantID image (DONE)
+  3. Load InstantID Model INSTANTID → Apply InstantID instantid (DONE)
+  4. InstantID Face Analysis FACEANALYSIS → Apply InstantID insightface (DONE)
+  5. Load Checkpoint CLIP → both CLIP Text Encode clip inputs (DONE)
+  6. Top CLIP Text Encode CONDITIONING → Apply InstantID positive (DONE)
+  7. Bottom CLIP Text Encode CONDITIONING → Apply InstantID negative (DONE)
+- REMAINING connections:
+  8. Apply InstantID MODEL → KSampler model
+  9. Apply InstantID positive → KSampler positive
+  10. Apply InstantID negative → KSampler negative
+  11. Empty Latent Image LATENT → KSampler latent_image
+  12. KSampler LATENT → VAE Decode samples
+  13. Load Checkpoint VAE → VAE Decode vae
+  14. VAE Decode IMAGE → Save Image images
+- AFTER connections: set Empty Latent Image to 1024x1280, add prompts, run
+
+## What We're Working On NEXT (after workflow)
+- Generate first test image with face consistency
+- Compare output to reference, iterate on prompts
+- Generate scenario variants (different poses, settings, outfits)
+
+## IMPORTANT PATH INFO
+- ComfyUI is at: /workspace/runpod-slim/ComfyUI/ (NOT /workspace/ComfyUI/)
+- Python is python3 (NOT python)
+- Web terminal paste: use right-click > Paste or Ctrl+Shift+V
+- unzip not available via apt - use python3 zipfile module instead
 - Previous: Deployed NEW pod with official ComfyUI template (yabbering_orange_mammal)
 - Previous: Pod ID: h74hl96oos9brr
 - ComfyUI is WORKING and accessible via web browser
