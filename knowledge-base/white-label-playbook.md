@@ -67,6 +67,25 @@ A complete system to create and run an AI influencer from scratch:
 - **Reference image:** 1 Midjourney face image (master reference)
 - **How it works:** InstantID copies face from reference onto any scenario you describe in prompt
 
+### 6. InstantID Settings Optimization (Phase 1 Fix - 2026-02-06)
+- **Problem:** First output was 3/10 - dark face, fake hat, wrong lighting, AI look
+- **Root causes:** InstantID weight too high (burn effect), CFG too high, prompt fighting reference, txt2img losing OG quality
+- **Optimized settings:**
+
+| Setting | Before | After | Why |
+|---------|--------|-------|-----|
+| InstantID weight | 0.80 | **0.75** | Community consensus: 0.70-0.80 max |
+| CFG | 8.0 | **4.0** | InstantID needs low CFG (4.0-4.5) |
+| Steps | 20 | **35** | More refinement, smoother result |
+| Resolution | 1024x1280 | **1016x1280** | Avoids SDXL training artifacts at exact 1024 |
+
+- **Lesson:** InstantID weight > 0.85 causes "burn" effect - over-processed, fake AI look
+- **Lesson:** CFG > 5.0 with InstantID amplifies artifacts
+- **Lesson:** Positive prompt must MATCH reference image vibe (outdoor ref = outdoor prompt)
+- **Lesson:** Use weighted negative prompts for SDXL: `(airbrushed:1.4), (smooth skin:1.3)`
+- **Lesson:** If Phase 1 not enough, add IP-Adapter FaceID for style/quality transfer
+- **Lesson:** If still not enough, switch to img2img (denoise 0.40) to preserve OG image quality
+
 ---
 
 ## Tools & Costs Summary
@@ -96,6 +115,12 @@ A complete system to create and run an AI influencer from scratch:
 | unzip not available | `python3 -c "import zipfile; zipfile.ZipFile('file.zip').extractall('.')"` |
 | ComfyUI not loading models | Restart: pkill + python3 main.py --listen 0.0.0.0 --port 8188 & |
 | wget URL 404 | Check HuggingFace for correct filename (fp16 vs full) |
+| InstantIDFaceAnalysis AssertionError | antelopev2 models nested in subfolder. Fix: `mv .../antelopev2/antelopev2/* .../antelopev2/` then `rmdir` the nested folder |
+| Missing control_net input on Apply InstantID | Add "Load ControlNet Model" node, select `instantid-controlnet.safetensors`, connect CONTROL_NET output to Apply InstantID control_net input |
+| Output looks "AI burned" / dark face / plastic | InstantID weight too high (>0.85). Lower to 0.75. Also lower CFG to 4.0 |
+| Output doesn't match reference vibe | Prompt fighting reference. If OG is outdoor/candid, prompt must be outdoor/candid |
+| Face structure right but quality wrong | Add IP-Adapter FaceID (PLUS FACE portraits, weight 0.60-0.70) for quality transfer |
+| Need tighter match to reference | Switch to img2img: Load Image + VAE Encode + denoise 0.40 instead of Empty Latent |
 
 ---
 
@@ -127,4 +152,4 @@ A complete system to create and run an AI influencer from scratch:
 ---
 
 *Last updated: 2026-02-06*
-*Status: IN PROGRESS - documenting as we build*
+*Status: IN PROGRESS - Phase 1 settings fix ready, awaiting test on ComfyUI*

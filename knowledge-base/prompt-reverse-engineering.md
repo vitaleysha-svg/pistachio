@@ -129,23 +129,46 @@ When given a reference image, decompose into ALL of these categories:
 
 ### ComfyUI Parameter Mapping
 
-**InstantID settings:**
-- `ip_adapter_weight`: 0.6-0.8 (face similarity, higher = more similar)
+**InstantID settings (CORRECTED 2026-02-06 - community tested):**
+- `weight`: **0.70-0.80** (sweet spot: 0.75. Above 0.85 = "burn" effect, fake AI look)
 - `controlnet_conditioning_scale`: 0.8-1.0 (structural adherence)
-- `start_step`: 0 (apply from beginning)
-- `end_step`: 1.0 (apply through end)
+- `start_at`: 0.0 (apply from beginning)
+- `end_at`: 1.0 (apply through end)
 
-**IP-Adapter FaceID settings:**
-- `weight`: 0.7-0.85 (balance between reference and creativity)
+**KSampler settings for InstantID:**
+- `cfg`: **4.0-4.5** (NOT 7-8. Higher CFG + InstantID = amplified artifacts)
+- `steps`: **25-35** (sweet spot: 30)
+- `sampler`: **dpmpp_2m** (DPM++ 2M - community consensus best for photorealism)
+- `scheduler`: **karras** (WARNING: do NOT use karras with euler/heun = blurry)
+- `denoise`: 1.00 for txt2img, **0.30-0.45** for img2img
+
+**InstantID Advanced Node:**
+- `end_at`: **0.85-0.90** (let final steps run without InstantID = more natural finish)
+- `noise`: **0.20-0.50** (default 0.35 in basic node. Higher = more natural, less identity)
+
+**Resolution:**
+- Use **1016x1280** not 1024x1280 (avoids SDXL training artifact triggers at exact 1024)
+
+**Generation Mode:**
+- **txt2img** (Empty Latent + denoise 1.0): Generates from scratch
+- **img2img** (Load Image + VAE Encode + denoise 0.40): Preserves OG quality/lighting/color
+
+**IP-Adapter FaceID settings (use WITH InstantID for pro results):**
+- `weight`: **0.60-0.70** (transfers style/quality, not just face)
+- `model`: PLUS FACE (portraits) via IPAdapter Unified Loader FaceID
 - `weight_type`: "linear" or "ease in-out"
 - `start_at`: 0.0
 - `end_at`: 1.0
 
+**Negative prompt weighting (SDXL syntax):**
+- Format: `(term:weight)` where weight > 1.0 = stronger emphasis
+- Example: `(airbrushed:1.4), (smooth skin:1.3), (3d render:1.5)`
+
 **Key models needed:**
-- Base: SDXL or SD 1.5 realistic checkpoint
+- Base: RealVisXL v5 (SDXL realistic checkpoint)
 - Face: antelopev2 (InsightFace detection)
-- InstantID: ip-adapter.bin + ControlNet model
-- IP-Adapter: ip-adapter-faceid-plusv2_sdxl.bin
+- InstantID: ip-adapter.bin + instantid-controlnet.safetensors
+- IP-Adapter: ip-adapter-faceid-plusv2_sdxl.bin (PLUS FACE portraits)
 
 ---
 

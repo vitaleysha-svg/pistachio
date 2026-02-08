@@ -182,17 +182,27 @@ Fair warning... it gets pretty spicy 🔥
 | DM → Link click | 20-40% | ManyChat analytics |
 | Overall funnel | 2-5% | End-to-end tracking |
 
-## Platform Choice: Fanvue vs OnlyFans
+## Platform Choice: Fanvue vs OnlyFans vs Patreon (Updated 2026-02-06)
 
-| Factor | Fanvue | OnlyFans |
-|--------|--------|----------|
-| AI policy | Explicitly welcomes AI | Ambiguous, risky |
-| Platform cut | 20% | 20% |
-| Discovery | Better internal discovery | Minimal |
-| Payout | Weekly | Weekly |
-| Brand | Growing, AI-friendly | Established, saturated |
+| Factor | Fanvue | OnlyFans | Patreon |
+|--------|--------|----------|---------|
+| **Platform cut** | **15%** | 20% | 5-12% |
+| **AI policy** | Explicitly welcomes AI | Ambiguous - could ban | No explicit/suggestive content allowed |
+| **Payout** | Bi-weekly | Weekly | Monthly |
+| **Discovery** | Better internal discovery | Minimal | Minimal |
+| **Content type** | Adult/suggestive OK | Adult/suggestive OK | SFW only - strict policy |
+| **Audience size** | Growing, smaller | Largest, established | Large but wrong audience |
+| **Link suppression** | Less suppressed on IG/TikTok | IG/TikTok actively suppress OF links | Not suppressed |
+| **Risk** | Low (built for AI) | High (AI TOS unclear, could ban) | High (content policy kills monetization model) |
 
-**RECOMMENDATION:** Start on Fanvue. AI-friendly, less risk of ban.
+**RECOMMENDATION:** Fanvue is the move because:
+1. **Explicitly allows AI creators** - no TOS risk of account ban
+2. **15% cut vs OF's 20%** = $5K more per $100K revenue
+3. **OF could detect and ban AI content** - ambiguous policy, not worth the risk
+4. **Patreon is a non-starter** - their content policy prohibits the suggestive content that drives 80%+ of revenue in this space
+5. **15%+ of Fanvue revenue already comes from AI creators** - the platform is built for us
+
+**Kill shot:** Patreon's lowest cut (5%) is meaningless if you can't post the content that converts. OF's bigger audience is meaningless if they ban you. Fanvue is the only platform where you're a WELCOMED customer, not a liability.
 
 ## Sources
 

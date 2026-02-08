@@ -1,7 +1,7 @@
 # Face Consistency Techniques
 
 > How to maintain the same face across multiple images.
-> Last updated: 2026-02-03
+> Last updated: 2026-02-06
 
 ## Technique Comparison
 
@@ -40,11 +40,33 @@ Face Embedding → InstantID ControlNet → Model
 Prompt → KSampler → Output
 ```
 
-### Key Settings
+### Key Settings (Updated 2026-02-06 - Community Tested)
 
-- IP-Adapter weight: 0.7-0.9 (higher = more similar)
+**InstantID Settings:**
+- InstantID weight: **0.70-0.80** (NOT higher - causes "burn" effect, makes output look heavily AI-processed)
 - ControlNet strength: 0.8-1.0
-- CFG Scale: 7-8
+- CFG Scale: **4.0-4.5** (NOT 7-8 - higher CFG with InstantID = AI sharpness artifacts)
+- Steps: **25-35** (sweet spot for quality vs speed)
+- Sampler: **DPM++ 2M** with **Karras** scheduler (community consensus best for photorealism)
+- WARNING: Do NOT use Euler + Karras combo = blurry artifacts
+- Resolution: **1016x1280** (avoid exact 1024 - triggers SDXL training artifacts)
+- end_at: **0.85-0.90** (let final steps run without InstantID = more natural finish)
+
+**IP-Adapter FaceID Settings (use WITH InstantID):**
+- IP-Adapter weight: 0.60-0.70
+- Model: PLUS FACE (portraits) variant
+- This transfers photographic QUALITY from reference, not just face structure
+
+**Generation Mode:**
+- **txt2img** (Empty Latent + denoise 1.0): Good for new scenes, but loses OG image quality
+- **img2img** (Load Image + denoise 0.35-0.45): Better match to OG image's lighting/color/vibe
+- Start with txt2img, switch to img2img if results need tighter match
+
+**CRITICAL: The "Burn" Effect**
+- InstantID weight > 0.85 = over-processed, fake look
+- Community consensus: 0.75 is the sweet spot
+- Combined with high CFG (>5.0), burn effect is amplified
+- Signs of burn: dark faces, plastic skin, wrong lighting, "heavily AI" look
 
 ## Solving the "Composition Lock" Problem
 
@@ -75,6 +97,31 @@ Prompt → KSampler → Output
 photo of pistachio_character, [rest of prompt]
 ```
 
+## The 3-Phase Fix (Proven Workflow)
+
+### Phase 1: Settings Fix (Do First)
+1. Set InstantID weight to **0.75**
+2. Set CFG to **4.0**
+3. Set steps to **35**
+4. Set resolution to **1016x1280**
+5. Write positive prompt that **matches** OG image vibe (don't fight it)
+6. Use weighted negative prompt for SDXL: `(airbrushed:1.4), (smooth skin:1.3)` etc.
+7. Generate and compare to OG
+
+### Phase 2: Add IP-Adapter FaceID (If Phase 1 Not Enough)
+1. Add **IPAdapter Unified Loader FaceID** node - select "PLUS FACE (portraits)"
+2. Add **IPAdapter Apply** node - connect to pipeline
+3. Connect same reference image to IP-Adapter
+4. Set IP-Adapter weight: 0.60-0.70
+5. This transfers photographic quality, not just face structure
+
+### Phase 3: Switch to img2img (If Need Tighter Match)
+1. Remove Empty Latent Image node
+2. Add Load Image node with OG reference
+3. Add VAE Encode node between Load Image and KSampler latent_image input
+4. Set KSampler denoise to **0.40** (keep 60% of OG, change 40%)
+5. Preserves OG's lighting, color grading, composition
+
 ## Quick Start: Face Consistency Today
 
 **Step 1:** Generate your best portrait in Midjourney
@@ -103,13 +150,64 @@ For best InstantID/IP-Adapter results:
 
 **Cloud GPU Option:** RunPod, Vast.ai - ~$0.50/hour for 24GB
 
+## Community Research Findings (2026-02-06)
+
+Researched via WebSearch across Reddit, CivitAI, GitHub, tutorials. Key validated findings:
+
+**From cubiq/ComfyUI_InstantID (official repo):**
+- Default Apply InstantID node automatically injects 35% noise to negative embeds to reduce burn
+- Use Advanced InstantID node to fine-tune noise injection (20-50%)
+- InstantID model influences composition ~25%, ControlNet does the rest
+- CFG must be lowered to 4-5, or use RescaleCFG node
+
+**From community tutorials & CivitAI:**
+- FaceDetailer + InstantID + IP-Adapter combo = best face swap quality
+- IP-Adapter FaceID Plus V2 weight: 0.65-0.80 for face consistency
+- For img2img: test denoise at 0.35, 0.45, 0.55 - 0.35 keeps face tight, 0.55 lets style breathe
+- RealVisXL v3.0 Turbo and v5 produce most life-like faces
+- InstantID is designed more for styling than photorealism - set expectations accordingly
+
+**From img2img best practices:**
+- Denoise 0.0 = output identical to input, 1.0 = complete regeneration
+- Sweet spot for identity preservation: 0.35-0.50
+- If identity too loose, lower denoise OR increase ControlNet weight
+- Fixed seed helps consistency across variations
+
 ## Sources
 
 - [InstantID Official](https://instantid.github.io/)
+- [cubiq/ComfyUI_InstantID GitHub](https://github.com/cubiq/ComfyUI_InstantID)
 - [100% Face Similarity Workflow](https://medium.com/@wei_mao/100-face-similarity-the-ultimate-face-swap-workflow-better-than-any-pulid-instantid-b7fa2daa5659)
 - [ComfyUI InstantID + IP-Adapter Tutorial](https://myaiforce.com/comfyui-instantid-ipadapter/)
 - [Stable Diffusion Art - InstantID Guide](https://stable-diffusion-art.com/instantid/)
+- [FaceDetailer + InstantID + IP-Adapter (OpenArt)](https://openart.ai/workflows/myaiforce/better-face-swap-facedetailer-instantid-ip-adapter/KMFUVKakzXeepb2pMEnT)
+- [CivitAI img2img All-in-One Guide](https://civitai.com/articles/15480/img2img-comfyui-all-in-one-workflow-guide)
+- [Character Consistency with img2img](https://z-image.ai/blog/character-consistency-img2img)
+- [ComfyUI InstantID DeepWiki](https://deepwiki.com/cubiq/ComfyUI_InstantID/4.1-basic-usage)
 
 ---
 
-*Updated by Pistachio CoS Agent - 2026-02-03*
+## Prompt Strategy for Realism
+
+**Positive prompt must MATCH the reference image vibe.** If OG is outdoor/candid, don't prompt for indoor/studio. InstantID tries to merge both signals = muddy result.
+
+**Negative prompt with SDXL weights** (parentheses + number = emphasis):
+```
+(airbrushed:1.4), (smooth skin:1.3), (perfect skin:1.3), (studio lighting:1.2),
+(professional photo:1.2), (glamour:1.2), (retouched:1.3), (3d render:1.5),
+(cartoon:1.5), (anime:1.5), (illustration:1.4), (painting:1.4),
+(symmetrical face:1.2), (stock photo:1.3), (plastic skin:1.4), (waxy:1.3),
+(oversaturated:1.2), (HDR:1.2), double head, extra limbs, watermark, text, logo
+```
+
+## Future Optimization
+
+- **LoRA Training**: Train on 20-30 images for 95-98% consistency. Break-even after ~15 images.
+- **FaceDetailer**: Post-processing node for face refinement after generation
+- **ControlNet OpenPose**: Control exact poses from reference images
+- **Checkpoint A/B Test**: JuggernautXL v9, epiCRealism XL vs RealVisXL v5
+- **4x-UltraSharp Upscaler**: Final output quality boost
+
+---
+
+*Updated by Pistachio CoS Agent - 2026-02-06*

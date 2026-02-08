@@ -1,55 +1,65 @@
 # Pistachio Progress Tracker
 # AUTO-COMPACT RECOVERY FILE - Claude dumps state here before/during every session
 
-## Last Updated: 2026-02-06 (late night session)
+## Last Updated: 2026-02-07 (current session)
 
-## Current Phase: PRE-LAUNCH SETUP - Models Installed, Ready to Build Workflow
+## Current Phase: MODELS NEED RE-DOWNLOAD → Then Apply Phase 1 Fix
 
-## What Just Happened (Latest Session)
-- Pod migrated to new GPU (yabbering_orange_mammal-migration, ID: h0r68bqsw0lepy)
-- OLD pod (h74hl96oos9brr) should be deleted if not already
-- ALL models downloaded and verified:
-  - InsightFace antelopev2 (face detection) - /workspace/runpod-slim/ComfyUI/models/insightface/models/antelopev2/
-  - InstantID ip-adapter.bin (face copying) - /workspace/runpod-slim/ComfyUI/models/instantid/
-  - InstantID ControlNet (face structure) - /workspace/runpod-slim/ComfyUI/models/controlnet/instantid-controlnet.safetensors
-  - IP-Adapter FaceID plusv2 SDXL - /workspace/runpod-slim/ComfyUI/models/ipadapter/
-  - RealVisXL v5 checkpoint (6.5GB) - /workspace/runpod-slim/ComfyUI/models/checkpoints/realvisxl_v5.safetensors
-- Reinstalled ComfyUI_InstantID custom node (fresh git clone from cubiq)
-- Installed insightface + onnxruntime-gpu dependencies
-- InstantID nodes now show up in ComfyUI (Apply InstantID, Apply InstantID Advanced, InstantID Apply ControlNet)
-- First reference image decomposed (Fukushima Larissa - Japanese/Brazilian, 21)
-- MJ prompts generated in prompt-reverse-engineering workflow
-- Built prompt reverse-engineering system (knowledge-base/prompt-reverse-engineering.md)
-- Created iteration log (knowledge-base/prompt-iterations.md)
-- Created prd.json for Ralph Loop tracking
-- Persona changed: Egyptian/Brazilian -> Japanese/Brazilian mix
+## What Just Happened (Latest Session - 2026-02-07)
+- **New Midjourney hero image created** - Darker skin, fewer freckles, subtle green eyes. User approved.
+- **RunPod pod restarted** - Models and workflows wiped (pod storage didn't persist properly)
+- **Multiple failed download attempts** - JupyterLab terminal corrupts pasted URLs (line-break issues)
+- **Created download_models.ipynb** - Jupyter notebook that bypasses terminal entirely. User uploads to JupyterLab, clicks Run All, models download automatically.
+- **Created download_models.py** - Backup script at C:\Users\Vital\Downloads\
+- **Pistachio business ideas expanded** - Added Channel #6 (Website Funnel) from Matt
+- **Session learnings updated** - Added Pistachio fast-track mandate, business map, multiple corrections
+- **Bank statement analysis completed** - ~$1,600/mo recurring charges identified across all accounts
+
+## Previous Session Summary (2026-02-06)
+- Diagnosed InstantID output quality issues - Output was 3/10 vs OG 10/10
+- Identified 5 root causes: burn effect, wrong gen mode, prompt fighting, CFG too high, missing IP-Adapter FaceID
+- Created 3-phase fix plan: Phase 1 (settings), Phase 2 (IP-Adapter FaceID), Phase 3 (img2img)
+- Updated ALL knowledge base files with corrected settings
 
 ## What We're Doing RIGHT NOW
-- Building InstantID workflow in ComfyUI - connecting nodes
-- Reference face image UPLOADED (Pistachio741_Mixed_Japanese-Br...)
-- All models loaded and working
-- Connections completed so far (7 of 14):
-  1. Load Checkpoint MODEL → Apply InstantID model (DONE)
-  2. Load Image IMAGE → Apply InstantID image (DONE)
-  3. Load InstantID Model INSTANTID → Apply InstantID instantid (DONE)
-  4. InstantID Face Analysis FACEANALYSIS → Apply InstantID insightface (DONE)
-  5. Load Checkpoint CLIP → both CLIP Text Encode clip inputs (DONE)
-  6. Top CLIP Text Encode CONDITIONING → Apply InstantID positive (DONE)
-  7. Bottom CLIP Text Encode CONDITIONING → Apply InstantID negative (DONE)
-- REMAINING connections:
-  8. Apply InstantID MODEL → KSampler model
-  9. Apply InstantID positive → KSampler positive
-  10. Apply InstantID negative → KSampler negative
-  11. Empty Latent Image LATENT → KSampler latent_image
-  12. KSampler LATENT → VAE Decode samples
-  13. Load Checkpoint VAE → VAE Decode vae
-  14. VAE Decode IMAGE → Save Image images
-- AFTER connections: set Empty Latent Image to 1024x1280, add prompts, run
+- **STEP 1: Download models to RunPod** - Use download_models.ipynb (upload to JupyterLab, click Run All)
+- **STEP 2: Rebuild workflow** in ComfyUI (9 nodes, save JSON to /workspace/)
+- **STEP 3: Apply Phase 1 fix settings** and run generation:
 
-## What We're Working On NEXT (after workflow)
-- Generate first test image with face consistency
-- Compare output to reference, iterate on prompts
-- Generate scenario variants (different poses, settings, outfits)
+### Phase 1 Settings to Apply in ComfyUI:
+| Setting | Change To |
+|---------|-----------|
+| InstantID weight | **0.75** |
+| InstantID end_at | **0.90** |
+| KSampler CFG | **4.0** |
+| KSampler steps | **35** |
+| KSampler sampler | **dpmpp_2m** (NOT euler) |
+| KSampler scheduler | **karras** |
+| Empty Latent Image | **1016x1280** |
+| Positive prompt | See prompt-iterations.md Iteration #2 |
+| Negative prompt | See prompt-iterations.md Iteration #2 (weighted for SDXL) |
+
+**WARNING: Do NOT use euler + karras combo = blurry. DPM++ 2M + Karras is correct.**
+
+### If Phase 1 Score < 7/10, Phase 2:
+- Add IPAdapter Unified Loader FaceID node ("PLUS FACE portraits")
+- Add IPAdapter Apply node, connect to pipeline
+- IP-Adapter weight: 0.60-0.70
+
+### If Still < 7/10, Phase 3:
+- Remove Empty Latent Image
+- Add Load Image (OG reference) → VAE Encode → KSampler latent_image
+- Set denoise to 0.40
+
+## What We're Working On NEXT
+1. Start RunPod pod
+2. Apply Phase 1 settings in ComfyUI
+3. Run generation, screenshot output
+4. Compare to OG side by side, user scores it
+5. If < 7/10, apply Phase 2 (IP-Adapter FaceID)
+6. If still < 7/10, apply Phase 3 (img2img)
+7. Log results in prompt-iterations.md
+8. Once face is 7/10+, generate scenario variants
 
 ## IMPORTANT PATH INFO
 - ComfyUI is at: /workspace/runpod-slim/ComfyUI/ (NOT /workspace/ComfyUI/)
@@ -103,7 +113,10 @@
 - GPU: RTX 4090 (24GB VRAM)
 - Cost: ~$0.60/hr
 - Storage: 50GB persistent volume (/workspace)
-- Status: STOPPED (resume anytime)
+- Status: RUNNING (proxy URL: fa6kxojaa6wt55)
+- ComfyUI URL: https://fa6kxojaa6wt55-8188.proxy.runpod.net
+- JupyterLab URL: https://fa6kxojaa6wt55-8888.proxy.runpod.net
+- NOTE: Models were wiped on restart. Need to re-download via download_models.ipynb
 
 ## Next Steps (Ordered)
 1. **LoRA/Face Consistency Setup** - Install Python, ComfyUI, download models
