@@ -120,10 +120,20 @@ def run_cmd(label: str, cmd: list[str], cwd: str | None = None) -> int:
 def kill_comfyui() -> None:
     """Kill ComfyUI to free VRAM for training."""
     print("\n=== Stopping ComfyUI (free VRAM for training) ===")
-    subprocess.run(["pkill", "-9", "-f", "main.py.*--listen"], capture_output=True)
-    subprocess.run(["pkill", "-9", "-f", "comfyui"], capture_output=True)
+    our_pid = str(os.getpid())
+    # Find ComfyUI processes specifically, exclude our own PID
+    result = subprocess.run(
+        ["pgrep", "-f", "ComfyUI/main.py"],
+        capture_output=True, text=True,
+    )
+    pids = [p.strip() for p in result.stdout.strip().split("\n") if p.strip() and p.strip() != our_pid]
+    if pids:
+        for pid in pids:
+            subprocess.run(["kill", "-9", pid], capture_output=True)
+        print(f"  [ok] Killed ComfyUI processes: {pids}")
+    else:
+        print("  [ok] No ComfyUI processes found (already stopped)")
     time.sleep(3)
-    print("  [ok] ComfyUI stopped")
 
 
 def start_comfyui(comfyui_main: str) -> None:
