@@ -49,6 +49,7 @@ PACKAGE_TO_IMPORT = {
     "Pillow": "PIL",
     "opencv-python-headless": "cv2",
     "onnxruntime-gpu": "onnxruntime",
+    "pyyaml": "yaml",
 }
 
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".bmp"}
@@ -350,4 +351,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
