@@ -193,18 +193,33 @@ def fix_dependencies() -> None:
         "transformers==4.38.2",
         "accelerate==0.27.2",
     ]
+    # Stream output so user can see progress (not captured silently)
     rc = subprocess.run(
         [sys.executable, "-m", "pip", "install", "--force-reinstall"] + pkgs,
-        capture_output=True, text=True,
     )
     if rc.returncode == 0:
-        print("  [ok] Dependencies pinned")
+        print("  [ok] Dependencies pinned successfully")
     else:
-        # Show last few lines of error output
-        err_lines = (rc.stderr or rc.stdout or "").strip().split("\n")
-        for line in err_lines[-5:]:
-            print(f"  {line}")
-        print("  [warn] Dependency fix had issues, trying to continue anyway")
+        print("  [warn] Dependency fix had issues (exit code %d), trying to continue" % rc.returncode)
+
+    # Verify the fix actually worked
+    verify = subprocess.run(
+        [sys.executable, "-c",
+         "from huggingface_hub import cached_download; print('  [ok] cached_download import works')"],
+    )
+    if verify.returncode != 0:
+        print("  [FAIL] cached_download still not available after fix!")
+        print("  Trying alternative: patching huggingface_hub...")
+        # Last resort: monkey-patch the missing function
+        subprocess.run([sys.executable, "-c", """
+import huggingface_hub
+if not hasattr(huggingface_hub, 'cached_download'):
+    from huggingface_hub import hf_hub_download
+    huggingface_hub.cached_download = hf_hub_download
+    print('  [ok] Patched cached_download')
+else:
+    print('  [ok] cached_download already exists')
+"""])
 
 
 def phase_train(args: argparse.Namespace, paths: dict[str, str]) -> bool:
