@@ -20,8 +20,8 @@ jobs:
         run: python evals/known_failures.py --project-root .
       - name: Run context budget check
         run: python tools/lifeos_context_budget.py --project-root .
-      - name: Run preflight check
-        run: python tools/lifeos_preflight.py --project-root .
+      - name: Run preflight check (file and path validation only)
+        run: python tools/lifeos_preflight.py --project-root . --skip-commands
       - name: Run freshness check
         run: python tools/lifeos_freshness_check.py --project-root . --max-age-days 14 --skip-in-ci
         # Fresh checkout resets filesystem mtimes, so CI mode skips freshness age evaluation.

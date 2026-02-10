@@ -129,6 +129,7 @@ def check_broken_backtick_refs(root: Path, rel_files: list[str]) -> CheckResult:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run LifeOS preflight checks")
     parser.add_argument("--project-root", type=Path, default=Path.cwd())
+    parser.add_argument("--skip-commands", action="store_true", help="Skip command availability checks (for CI).")
     parser.add_argument("--json", action="store_true")
     return parser.parse_args()
 
@@ -157,11 +158,14 @@ def main() -> int:
 
     results = [
         check_required_files(root, required_files),
-        check_required_commands(["claude", "python"]),
+    ]
+    if not args.skip_commands:
+        results.append(check_required_commands(["claude", "python"]))
+    results.extend([
         check_hardcoded_paths(root, authoritative_files),
         check_stale_manual_reference(root, authoritative_files),
         check_broken_backtick_refs(root, ["context/projects/pistachio/SKILL.md", "context/projects/pistachio/context.md"]),
-    ]
+    ])
 
     overall = all(r.ok for r in results)
 
