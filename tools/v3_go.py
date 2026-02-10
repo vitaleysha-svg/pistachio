@@ -258,8 +258,27 @@ def phase_train(args: argparse.Namespace, paths: dict[str, str]) -> bool:
     output_dir = Path("/workspace/lora_output_v3")
     train_script = str(project_root / "tools" / "retrain_lora_v3.py")
 
-    auto_caption_script = str(project_root / "tools" / "auto_caption.py")
     dataset_manifest_script = str(project_root / "tools" / "dataset_manifest.py")
+
+    # Generate varied captions (BLIP-2 has version conflicts, use templates instead)
+    print("\n=== Generating varied captions ===")
+    train_images_path = Path(paths["train_images"])
+    captions = [
+        "amiranoor, a young woman, close up portrait, photorealistic, natural lighting",
+        "amiranoor, a young mixed heritage woman, natural lighting, candid photo",
+        "amiranoor, a woman with natural skin texture, soft lighting, portrait photography",
+        "amiranoor, young woman, looking at camera, natural expression, high quality photo",
+        "amiranoor, portrait of a woman, realistic skin, natural pose, professional photography",
+    ]
+    caption_count = 0
+    img_exts = {".jpg", ".jpeg", ".png", ".webp", ".bmp"}
+    img_files = sorted([f for f in train_images_path.iterdir() if f.is_file() and f.suffix.lower() in img_exts])
+    for i, img_file in enumerate(img_files):
+        caption_file = img_file.with_suffix(".txt")
+        if not caption_file.exists():
+            caption_file.write_text(captions[i % len(captions)] + "\n", encoding="utf-8")
+            caption_count += 1
+    print(f"  [ok] Generated {caption_count} captions ({len(img_files)} total images)")
 
     cmd = [
         sys.executable, train_script,
@@ -273,7 +292,7 @@ def phase_train(args: argparse.Namespace, paths: dict[str, str]) -> bool:
         "--max-train-steps", "2500",
         "--network-dim", "32",
         "--network-alpha", "16",
-        "--auto-caption-script", auto_caption_script,
+        "--skip-auto-caption",
         "--dataset-manifest-script", dataset_manifest_script,
     ]
     if paths["lora_dir"]:
