@@ -1,0 +1,16 @@
+﻿transformers==4.38.2
+diffusers==0.25.1
+huggingface_hub==0.21.4
+accelerate==0.27.2
+safetensors==0.4.2
+bitsandbytes==0.43.1
+voluptuous==0.15.2
+imagesize==1.4.1
+toml==0.10.2
+insightface==0.7.3
+onnxruntime-gpu==1.17.1
+requests==2.31.0
+Pillow==10.2.0
+numpy==1.26.4
+opencv-python-headless==4.9.0.80
+prodigyopt==1.1.2
