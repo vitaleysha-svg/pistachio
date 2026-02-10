@@ -111,4 +111,33 @@ oversaturated, HDR, makeup, styled hair, perfect teeth
 
 ---
 
-*Updated by Pistachio CoS Agent - 2026-02-03*
+## Midjourney Editor / Vary (Region) - Targeted Edits (2026-02-08)
+
+### Workflow
+1. Click image in MJ -> open in Editor
+2. Use **Smart Select** or **Paint > Erase** to mask the area to change
+3. Type replacement prompt in "What will you imagine?" bar
+4. Hit **Submit Edit**
+5. MJ regenerates ONLY the masked area, keeping everything else intact
+
+### Best Use Cases
+- Remove accessories (glasses, hats, jewelry)
+- Modify clothing (change outfit, remove items)
+- Change background elements
+- Subtle face tweaks (expression, hair)
+
+### Body Modifications
+- Mask the body area, prompt with MJ-safe terms only (see white-label-playbook.md for full list)
+- If MJ flags the edit as violating content policy, use **ComfyUI inpainting** instead (zero content filter)
+
+### MJ-Safe Body Terms Quick Reference
+Safe: `hourglass figure`, `slim waist`, `toned athletic feminine figure`, `naturally curvy`, `feminine curves`, `fit figure`, `athletic build`, `elegant silhouette`, `full body photo`
+
+Banned: cup sizes, bust/breasts/busty, glutes/booty/ass, thick thighs, voluptuous, provocative, lingerie, scantily clad, skimpy, sexy, body measurements
+
+### Key Insight
+`--oref` at `--ow 250` carries body shape from the reference image. Text prompt only needs scene/outfit/pose - NOT body measurements. Save explicit body descriptions for ComfyUI after LoRA training.
+
+---
+
+*Updated by Pistachio CoS Agent - 2026-02-08*

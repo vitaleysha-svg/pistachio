@@ -458,3 +458,24 @@ Example:
 **Rule:** 1) NEVER @import large files in CLAUDE.md. 2) Domain knowledge goes in `.claude/skills/` (loads on demand). 3) CLAUDE.md = core principles only (lean). 4) Skills = specialized knowledge (loaded when relevant). 5) The AI-CODING-WORKFLOW.md is now a skill at `.claude/skills/ralph-workflow/SKILL.md`.
 **Trigger:** Any time adding content to CLAUDE.md or creating new reference docs.
 **Severity:** CRITICAL - Permanently wastes ~40% of usable context on every single session.
+
+### #6: Incremental fixes instead of comprehensive solutions (2026-02-10)
+**Mistake:** When dependency errors hit during LoRA training setup, provided fix-one-at-a-time approach. Fixed transformers, which broke huggingface_hub, which broke diffusers. Three rounds of "try this... now try this" instead of one comprehensive solution.
+**Root cause:** Didn't stop to research the full dependency chain before suggesting a fix. Reactive instead of proactive.
+**Rule:** When hitting errors in a dependency chain or multi-part system, STOP. Research the full set of compatible versions/settings. Provide ONE comprehensive fix that addresses everything at once. The user wants permanent first-attempt solutions, not iterative debugging. This applies to any chain of related issues, not just Python dependencies.
+**Trigger:** Any time an error fix could reveal another error. Any time fixing A might break B.
+**Severity:** HIGH - Wastes user time and erodes trust. User explicitly called this out.
+
+### #7: Dismissing warnings as cosmetic without investigating (2026-02-10)
+**Mistake:** ComfyUI showed a frontend version mismatch warning. Dismissed it as cosmetic. It was the actual cause of the UI loading failure. Wasted time investigating other causes.
+**Root cause:** Assumed warnings are less important than errors. Didn't investigate the warning before moving on.
+**Rule:** NEVER dismiss warnings without investigating them first. Especially version mismatch warnings. Treat every warning as a potential root cause until proven otherwise. If a tool shows a version incompatibility warning, that is the FIRST thing to investigate, not the last.
+**Trigger:** Any time a tool, service, or system displays a warning message.
+**Severity:** HIGH - Sent debugging in the wrong direction, wasted significant time.
+
+### #8: Using web terminal for complex commands instead of script files (2026-02-10)
+**Mistake:** Gave the user multi-line bash commands and complex pip install chains to paste into JupyterLab's web terminal. Terminal mangled them every time (auto-indentation, broken URLs, syntax errors). Should have created .py or .sh script files from the start.
+**Root cause:** Defaulted to the "quick" approach (paste a command) instead of the reliable approach (upload a script). Didn't account for the web terminal's known paste issues (documented in session-learnings.md since 2026-02-07).
+**Rule:** For ANY command beyond a simple single-line operation: create a .py or .sh script file, have the user upload it to JupyterLab, then run it. Script files are immune to terminal paste corruption. This was already a known issue -- should have applied the existing learning.
+**Trigger:** Any time about to give the user a command to run on the RunPod web terminal.
+**Severity:** MEDIUM - Causes repeated failures and frustration. Was a KNOWN issue that wasn't applied consistently.

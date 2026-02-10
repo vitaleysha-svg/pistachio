@@ -197,3 +197,41 @@ candid photo of a young mixed Japanese-Brazilian woman, 21, golden olive skin wi
 - Set denoise to 0.40 (keep 60% of OG quality/composition, change 40%)
 
 **Pattern Extracted**: [PENDING - will extract after testing]
+
+---
+
+### Iteration #2 Results (2026-02-07) - Phase 1 Applied
+- **Settings applied:** InstantID weight 0.75, CFG 4.0, steps 35, dpmpp_2m + karras, 1016x1280, end_at 0.90
+- **Positive prompt:** candid photo of a young mixed Japanese-Brazilian woman, 21, golden olive skin with visible pores and natural texture, dark hair under baseball cap, natural relaxed expression, outdoor setting with trees and greenery, warm natural sunlight, shot on Canon 5D 85mm f1.4, shallow depth of field, Kodak Portra 400 film grain, candid framing, no retouching, slight under-eye shadows, asymmetrical features, realistic skin imperfections
+- **Negative prompt:** (airbrushed:1.4), (smooth skin:1.3), (perfect skin:1.3), (studio lighting:1.2), (professional photo:1.2), (glamour:1.2), (retouched:1.3), (3d render:1.5), (cartoon:1.5), (anime:1.5), (illustration:1.4), (painting:1.4), (symmetrical face:1.2), (stock photo:1.3), (plastic skin:1.4), (waxy:1.3), (oversaturated:1.2), (HDR:1.2), double head, extra limbs, watermark, text, logo
+- **Result:** Realism 6-7/10 (major improvement from 3/10). Face identity does NOT match hero image - different person. Skin tone lighter, facial structure different.
+- **Conclusion:** Phase 1 settings fixed the AI-look quality issue but InstantID alone is not enough for face identity. Moving to Phase 2 (adding IP-Adapter FaceID).
+
+### Iteration #3 Results (2026-02-07) - Phase 2: IP-Adapter FaceID Added
+- **What changed:** Added IPAdapter FaceID node + IPAdapter Unified Loader FaceID + IPAdapter InsightFace Loader
+- **New nodes added:** IPAdapter FaceID (weight 0.65, weight_faceidv2 1.00, weight_type linear, combine_embeds concat, embeds_scaling V only), IPAdapter Unified Loader FaceID (preset FACEID PLUS V2, lora_strength 0.60, provider CUDA), IPAdapter InsightFace Loader (provider CUDA)
+- **Additional models downloaded:** CLIP-ViT-H-14-laion2B-s32B-b79K.safetensors (clip_vision, 2.5GB), ip-adapter-faceid-plusv2_sdxl_lora.safetensors (loras, 371MB)
+- **Result with original prompt (outdoor/cap):** Face consistency DRAMATICALLY improved. Same person recognizable. Realism 7-8/10. Hat from reference image bleeds through (InstantID artifact).
+- **Result with cafe prompt:** Face consistency HELD across different scenario. Realism 8-9/10. Outdoor cafe, golden hour, different pose (chin on hand). Looks like a real photo. Hat still transfers from reference.
+- **Cafe prompt used:** candid photo of a young mixed Japanese-Brazilian woman, 21, golden olive skin with visible pores and natural texture, long dark hair flowing loose, natural relaxed smile, sitting at outdoor cafe table, warm golden hour sunlight, shot on Canon 5D 85mm f1.4, shallow depth of field, Kodak Portra 400 film grain, candid framing, no retouching, slight under-eye shadows, asymmetrical features, realistic skin imperfections
+- **Hat fix:** Add "hat, cap, headwear" to negative prompt OR crop reference image to face-only (no hat). Option B is cleaner permanent fix.
+- **Conclusion:** Phase 2 (InstantID + IPAdapter FaceID) is the working combination. Face consistency confirmed across scenarios. Pipeline is production-ready for face generation. Next step: LoRA training for body consistency.
+
+### Key Pattern: InstantID Accessory Transfer
+- InstantID transfers accessories (hats, glasses, jewelry) from reference image
+- To prevent: crop reference to face only, or add accessories to negative prompt
+- This is a known behavior, not a bug
+
+### Phase 3 Test (2026-02-07) - img2img Mode
+- **What changed:** Added VAE Encode node, connected hero image through VAE Encode to KSampler latent_image, set denoise to 0.40
+- **Result:** Closer match to hero in skin tone, warmth, and overall vibe. Face more similar. But still not identical - the "Midjourney aesthetic" doesn't fully transfer.
+- **Weight adjustments tested:** IPAdapter FaceID weight 0.80, weight_faceidv2 1.20 - improved face match
+- **CFG test:** Dropped to 3.5 for more realism, then back to 4.0 (3.5 too soft)
+- **Prompt adjustments:** Added "skin blemishes, uneven skin tone" for realism - made her look too plain/not attractive. Reverted to balanced prompt with "natural beauty, subtle lip gloss, warm color grading"
+- **Conclusion:** img2img gets closer but the gap between ComfyUI and Midjourney quality requires LoRA training to close permanently.
+
+### Hat Removal Attempts (2026-02-07)
+- Adding "hat, cap, headwear" to negative prompt: did NOT work. InstantID overpowers negative prompt for accessories.
+- Cropping reference image to remove hat: partially worked but hurt face consistency (less face data for InstantID to work with)
+- Generated hat-free hero in Midjourney using --oref --ow 200: WORKED. Created second reference image without hat.
+- **Best approach:** Use hat-free Midjourney hero as reference when hat-free output is needed.

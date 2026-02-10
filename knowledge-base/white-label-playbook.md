@@ -151,5 +151,131 @@ A complete system to create and run an AI influencer from scratch:
 
 ---
 
-*Last updated: 2026-02-06*
-*Status: IN PROGRESS - Phase 1 settings fix ready, awaiting test on ComfyUI*
+*Last updated: 2026-02-08*
+*Status: All 30 LoRA training images generated and downloaded. Next: prep images + train LoRA on pod.*
+
+### LoRA Training Roadmap (Documented 2026-02-07)
+1. Generate 20 varied prompts in Midjourney with --oref --ow 250
+2. Each prompt generates 4 images = 80 total
+3. Cherry-pick 20-30 best (consistent face, varied angles/lighting/outfits)
+4. Use MJ-safe body terms only (see section below) - save explicit descriptions for ComfyUI after LoRA training
+5. Prep images: crop/resize to 1024x1024, create caption .txt files
+6. Train LoRA on RunPod RTX 4090 (~30-60 min)
+7. Load LoRA in ComfyUI workflow
+8. All future generation: ComfyUI + LoRA (zero restrictions, zero cost per image)
+
+---
+
+## Midjourney Body Description Terms (Documented 2026-02-08)
+
+### MJ-Safe Body Description Terms (Confirmed Working)
+- `hourglass figure` - confirmed working, go-to replacement for explicit body terms
+- `slim waist` - safe
+- `toned athletic feminine figure` - safe
+- `naturally curvy` - safe
+- `feminine curves` - safe
+- `fit figure` - safe
+- `athletic build` - safe
+- `elegant silhouette` - safe
+- `full body photo` - safe
+
+### MJ Banned/Filtered Body Terms (DO NOT USE)
+- Any cup size (D cup, C cup, etc.)
+- bust, breasts, busty
+- glutes, booty, ass
+- thick thighs
+- voluptuous
+- provocative
+- lingerie, scantily clad, skimpy
+- sexy
+- Any specific body part measurements
+
+### Key Insight
+`--oref` at `--ow 250` does the heavy lifting for body shape from the reference image. The text prompt only needs scene/outfit/pose - not body measurements. Save explicit body descriptions for ComfyUI after LoRA training (zero content filter).
+
+---
+
+## Midjourney Editor / Vary (Region) Workflow (Documented 2026-02-08)
+
+### How to Use MJ Editor for Targeted Edits
+1. Click image in MJ -> open in Editor
+2. Use Smart Select or Paint > Erase to mask the area to change
+3. Type replacement prompt in "What will you imagine?" bar
+4. Hit Submit Edit
+5. MJ regenerates ONLY the masked area, keeping everything else
+
+### Use Cases
+- Remove accessories (glasses, hats)
+- Modify clothing
+- Change background elements
+
+### Body Modifications via Editor
+- Mask the area, prompt with safe terms (see MJ-Safe list above)
+- If MJ flags the edit, use ComfyUI inpainting instead (zero filter)
+
+---
+
+## RunPod/ComfyUI Troubleshooting Log (2026-02-07)
+
+### Issue: Models and custom nodes wiped on pod restart
+- **Cause:** Pod was TERMINATED instead of STOPPED. Terminate destroys the volume.
+- **Fix:** Always STOP, never TERMINATE. Everything under /workspace/ persists on stop.
+- **Recovery:** Run download_models.ipynb (models) + install_nodes.ipynb (custom nodes). Both saved at /workspace/.
+- **Prevention:** Keep download_models.ipynb, install_nodes.ipynb, and workflow JSON at /workspace/
+
+### Issue: JupyterLab terminal corrupts pasted URLs
+- **Cause:** Long URLs get split across lines when pasted into JupyterLab terminal
+- **Fix:** Use Jupyter notebooks (.ipynb) instead of terminal for scripts with long URLs. Paste into notebook cells (text editor), not terminal. The notebook approach completely bypasses terminal paste issues.
+
+### Issue: ComfyUI workflows lost after pod restart
+- **Cause:** ComfyUI saves workflows to browser localStorage, tied to the proxy URL. New pod = new URL = empty localStorage.
+- **Fix:** Always export workflow as .json and save to /workspace/. Import via hamburger menu > Load if localStorage is empty.
+
+### Issue: "No results found" for InstantID nodes
+- **Cause:** Custom nodes need to be installed separately from models. They live in /workspace/runpod-slim/ComfyUI/custom_nodes/
+- **Fix:** Run install_nodes.ipynb which git clones ComfyUI-InstantID and ComfyUI_IPAdapter_plus, then restart ComfyUI
+
+### Issue: Apply InstantID missing control_net and model inputs
+- **Cause:** ControlNet loader node was not added. Model wire from Load Checkpoint disconnected.
+- **Fix:** Add "Load ControlNet Model" node, select instantid-controlnet.safetensors, connect to Apply InstantID control_net input. Connect Load Checkpoint MODEL to Apply InstantID model.
+
+### Issue: IPAdapter node names don't match documentation
+- **Cause:** cubiq's ComfyUI_IPAdapter_plus extension uses different node names than commonly documented
+- **Actual node names found:** "IPAdapter Unified Loader", "IPAdapter Advanced", "IPAdapter FaceID", "IPAdapter InsightFace Loader", "IPAdapter Unified Loader FaceID", "IPAdapter Encoder"
+- **For Phase 2 face transfer:** Use "IPAdapter FaceID" (the apply node) + "IPAdapter Unified Loader FaceID" (the loader)
+
+### ComfyUI InstantID Correct Node Setup (Verified Working)
+1. Load Image (reference face)
+2. Load Checkpoint (realvisxl_v5.safetensors)
+3. Load InstantID Model (ip-adapter.bin)
+4. Load ControlNet Model (instantid-controlnet.safetensors)
+5. InstantID Face Analysis (provider: CUDA)
+6. Apply InstantID (weight 0.75, end_at 0.90)
+7. CLIP Text Encode x2 (positive + negative)
+8. Empty Latent Image (1016x1280)
+9. KSampler (steps 35, cfg 4.0, dpmpp_2m, karras)
+10. VAE Decode
+11. Save Image
+
+### Issue: IPAdapter model not found
+- **Cause:** Preset on IPAdapter Unified Loader FaceID was set to "FACEID" but model downloaded was FaceID Plus V2
+- **Fix:** Change preset dropdown to "FACEID PLUS V2" to match the downloaded model filename (ip-adapter-faceid-plusv2_sdxl.bin)
+
+### Issue: ClipVision model not found
+- **Cause:** IPAdapter FaceID requires CLIP Vision model and FaceID LoRA, which weren't in the original download list
+- **Models needed:** CLIP-ViT-H-14-laion2B-s32B-b79K.safetensors (2.5GB, goes in models/clip_vision/), ip-adapter-faceid-plusv2_sdxl_lora.safetensors (371MB, goes in models/loras/)
+- **Fix:** Created download_clipvision.ipynb to download both. Added to pod at /workspace/
+
+### Issue: Considered automating MJ with Playwright (2026-02-08)
+- **Risk:** Permanent account ban per MJ ToS, no refund, no appeal
+- MJ actively detects automation tools (confirmed bans as of Jan 2025)
+- **Solution:** Manual copy-paste (30 prompts = ~30 min). Save automation for ComfyUI on pod (no restrictions)
+- **Source:** MJ Community Guidelines, GitHub issues, Make Community reports
+- **Rule:** NEVER automate Midjourney. Manual only. Automate everything on ComfyUI/RunPod side instead.
+
+### Recovery Checklist (If Pod Wipes)
+1. Upload download_models.ipynb -> Run (downloads all models)
+2. Upload install_nodes.ipynb -> Run (installs custom nodes + restarts ComfyUI)
+3. Upload instantid-phase1.json -> Import in ComfyUI
+4. Upload hero image
+5. Ready to generate in ~10 minutes
