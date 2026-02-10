@@ -1,3 +1,6 @@
+﻿> LEGACY SNAPSHOT NOTICE (2026-02-10)
+> This document is a historical recovery snapshot and is non-authoritative.
+> Use `PROGRESS.md`, `context/projects/pistachio/context.md`, and `CODEX-CHANGES.md` for current truth.
 # Project Pistachio - Context Recovery Doc
 
 Created: Feb 3, 2026
@@ -56,7 +59,7 @@ Analytics: Looker Studio
 ## Three Engines
 1. Content Engine: Reels/Posts/Stories
 2. Conversation Engine: DMs, replies, community
-3. Conversion Engine: IG → Fanvue/OF
+3. Conversion Engine: IG â†’ Fanvue/OF
 
 ## Success Metrics
 - Reach: 1.5-3x follower count
@@ -65,7 +68,7 @@ Analytics: Looker Studio
 - Growth: 300-700 followers/week
 
 ## Funnel
-IG content → Profile clicks → Link in bio → Pre-lander → Fanvue/OF
+IG content â†’ Profile clicks â†’ Link in bio â†’ Pre-lander â†’ Fanvue/OF
 - Every like = auto DM
 - Every comment = auto DM
 - Every follow = auto DM
@@ -134,3 +137,4 @@ Output files:
 ## Recovery Notes
 If context compacts, read this file first.
 This is NOT part of Life OS - separate project with VS.
+
