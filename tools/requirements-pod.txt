@@ -4,6 +4,7 @@ huggingface_hub==0.21.4
 accelerate==0.27.2
 safetensors==0.4.2
 bitsandbytes==0.43.1
+xformers==0.0.25.post1
 voluptuous==0.15.2
 imagesize==1.4.1
 toml==0.10.2
