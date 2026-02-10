@@ -248,6 +248,9 @@ def phase_train(args: argparse.Namespace, paths: dict[str, str]) -> bool:
     output_dir = Path("/workspace/lora_output_v3")
     train_script = str(project_root / "tools" / "retrain_lora_v3.py")
 
+    auto_caption_script = str(project_root / "tools" / "auto_caption.py")
+    dataset_manifest_script = str(project_root / "tools" / "dataset_manifest.py")
+
     cmd = [
         sys.executable, train_script,
         "--pretrained-model", paths["checkpoint"],
@@ -260,6 +263,8 @@ def phase_train(args: argparse.Namespace, paths: dict[str, str]) -> bool:
         "--max-train-steps", "2500",
         "--network-dim", "32",
         "--network-alpha", "16",
+        "--auto-caption-script", auto_caption_script,
+        "--dataset-manifest-script", dataset_manifest_script,
     ]
     if paths["lora_dir"]:
         cmd.extend(["--comfyui-lora-dir", paths["lora_dir"]])
