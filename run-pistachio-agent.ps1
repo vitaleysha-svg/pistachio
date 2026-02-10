@@ -1,7 +1,8 @@
 ﻿param(
   [string]$ProjectRoot = (Split-Path -Parent $PSCommandPath),
   [string]$AgentPromptPath,
-  [switch]$DryRun
+  [switch]$DryRun,
+  [switch]$SkipGuards
 )
 
 $ErrorActionPreference = 'Stop'
@@ -22,7 +23,43 @@ if (-not (Test-Path $AgentPromptPath)) {
   throw "Agent prompt file not found: $AgentPromptPath"
 }
 
+function Get-PythonCommand {
+  if (Get-Command python -ErrorAction SilentlyContinue) {
+    return @('python')
+  }
+  if (Get-Command py -ErrorAction SilentlyContinue) {
+    return @('py', '-3')
+  }
+  throw "Python not found in PATH."
+}
+
+function Invoke-GuardScript {
+  param(
+    [string]$ScriptPath,
+    [string[]]$Arguments
+  )
+
+  $py = @(Get-PythonCommand)
+  $cmd = $py[0]
+  $preArgs = @()
+  if ($py.Length -gt 1) {
+    $preArgs = $py[1..($py.Length-1)]
+  }
+  & $cmd @preArgs $ScriptPath @Arguments
+  if ($LASTEXITCODE -ne 0) {
+    throw "Guard failed: $ScriptPath"
+  }
+}
+
 New-Item -ItemType Directory -Path $OutputDir -Force | Out-Null
+
+if (-not $SkipGuards) {
+  Write-Host 'Running Phase 1 guardrails...'
+  $toolsDir = Join-Path $ProjectRoot 'tools'
+  Invoke-GuardScript -ScriptPath (Join-Path $toolsDir 'lifeos_preflight.py') -Arguments @('--project-root', $ProjectRoot)
+  Invoke-GuardScript -ScriptPath (Join-Path $toolsDir 'lifeos_freshness_check.py') -Arguments @('--project-root', $ProjectRoot, '--max-age-days', '7')
+  Invoke-GuardScript -ScriptPath (Join-Path $toolsDir 'lifeos_context_budget.py') -Arguments @('--project-root', $ProjectRoot)
+}
 
 $agentPrompt = Get-Content -Raw $AgentPromptPath
 $runtimeContext = @"

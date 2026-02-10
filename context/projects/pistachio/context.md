@@ -29,7 +29,7 @@
 4. Keep source-of-truth docs fresh so autonomous loops do not drift.
 
 ## Execution Priorities
-1. Pod bootstrap + health check (`startup_v2.sh` + `pod_health_check.py`).
+1. Pod bootstrap + health check (`tools/startup_v2.sh` + `tools/pod_health_check.py`).
 2. Dataset prep: auto-captions + regularization image set.
 3. LoRA v3 training run with Prodigy + xformers.
 4. Sweep and rank outputs by face similarity + visual review.

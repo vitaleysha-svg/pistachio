@@ -6,6 +6,7 @@
 # Optional env:
 #   PISTACHIO_DIR=/abs/path/to/repo
 #   AGENT_PROMPT_FILE=/abs/path/to/agents/pistachio-agent-v2.md
+#   SKIP_GUARDS=1
 
 set -euo pipefail
 
@@ -21,12 +22,29 @@ if ! command -v claude >/dev/null 2>&1; then
   exit 1
 fi
 
+PYTHON_BIN="${PYTHON_BIN:-python3}"
+if ! command -v "$PYTHON_BIN" >/dev/null 2>&1; then
+  if command -v python >/dev/null 2>&1; then
+    PYTHON_BIN="python"
+  else
+    echo "ERROR: python not found in PATH." >&2
+    exit 1
+  fi
+fi
+
 if [[ ! -f "$AGENT_PROMPT_FILE" ]]; then
   echo "ERROR: Agent prompt file not found: $AGENT_PROMPT_FILE" >&2
   exit 1
 fi
 
 mkdir -p "$OUTPUT_DIR"
+
+if [[ "${SKIP_GUARDS:-0}" != "1" ]]; then
+  echo "Running Phase 1 guardrails..."
+  "$PYTHON_BIN" "$PISTACHIO_DIR/tools/lifeos_preflight.py" --project-root "$PISTACHIO_DIR"
+  "$PYTHON_BIN" "$PISTACHIO_DIR/tools/lifeos_freshness_check.py" --project-root "$PISTACHIO_DIR" --max-age-days 7
+  "$PYTHON_BIN" "$PISTACHIO_DIR/tools/lifeos_context_budget.py" --project-root "$PISTACHIO_DIR"
+fi
 
 AGENT_PROMPT="$(cat "$AGENT_PROMPT_FILE")"
 RUNTIME_CONTEXT=$(cat <<EOF
