@@ -11,6 +11,7 @@ Example:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import shutil
 import subprocess
 import sys
@@ -33,6 +34,14 @@ PINNED_DEPENDENCIES = {
 def run(cmd: list[str]) -> None:
     print("[cmd]", " ".join(str(x) for x in cmd))
     subprocess.run(cmd, check=True)
+
+
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def ensure_dependencies(skip_install: bool) -> None:
@@ -106,6 +115,33 @@ def run_auto_caption(args: argparse.Namespace) -> None:
     if args.force_recaption:
         cmd.append("--overwrite")
     run(cmd)
+
+
+def run_dataset_manifest(args: argparse.Namespace) -> tuple[Path, str]:
+    if args.skip_dataset_manifest:
+        return args.dataset_manifest_out, ""
+
+    script_path = args.dataset_manifest_script
+    if not script_path.exists():
+        raise FileNotFoundError(
+            f"Dataset manifest script not found: {script_path}. Upload tools/dataset_manifest.py to pod."
+        )
+
+    args.dataset_manifest_out.parent.mkdir(parents=True, exist_ok=True)
+    cmd = [
+        sys.executable,
+        str(script_path),
+        "--dataset-dir",
+        str(args.train_data_dir),
+        "--caption-extension",
+        args.caption_extension,
+        "--output",
+        str(args.dataset_manifest_out),
+    ]
+    run(cmd)
+    manifest_hash = sha256_file(args.dataset_manifest_out)
+    print(f"[manifest] path={args.dataset_manifest_out} sha256={manifest_hash}")
+    return args.dataset_manifest_out, manifest_hash
 
 
 def build_training_command(args: argparse.Namespace) -> list[str]:
@@ -236,6 +272,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--train-text-encoder", action="store_true")
 
     parser.add_argument("--auto-caption-script", type=Path, default=Path("/workspace/auto_caption.py"))
+    parser.add_argument("--dataset-manifest-script", type=Path, default=Path(__file__).with_name("dataset_manifest.py"))
+    parser.add_argument("--dataset-manifest-out", type=Path, default=None)
+    parser.add_argument("--skip-dataset-manifest", action="store_true")
     parser.add_argument("--skip-auto-caption", action="store_true")
     parser.add_argument("--force-recaption", action="store_true")
     parser.add_argument(
@@ -268,6 +307,8 @@ def validate_inputs(args: argparse.Namespace) -> None:
 
 def main() -> int:
     args = parse_args()
+    if args.dataset_manifest_out is None:
+        args.dataset_manifest_out = args.output_dir / "dataset_manifest.json"
 
     ensure_dependencies(skip_install=args.skip_install)
     validate_inputs(args)
@@ -277,6 +318,8 @@ def main() -> int:
 
     if not args.skip_auto_caption:
         run_auto_caption(args)
+
+    run_dataset_manifest(args)
 
     write_dataset_config(args.dataset_config, args)
 

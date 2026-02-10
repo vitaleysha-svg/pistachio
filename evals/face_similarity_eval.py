@@ -11,6 +11,12 @@ import sys
 from pathlib import Path
 from typing import Any
 
+SCRIPT_DIR = Path(__file__).resolve().parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
+from load_thresholds import load_thresholds
+
 REQUIRED_PACKAGES = {
     "insightface": "0.7.3",
     "onnxruntime-gpu": "1.17.1",
@@ -165,7 +171,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Evaluate face similarity against reference images.")
     parser.add_argument("--generated", type=Path, required=True, help="Directory of generated images.")
     parser.add_argument("--reference", type=Path, required=True, help="Directory of reference images.")
-    parser.add_argument("--threshold", type=float, default=0.60, help="Pass threshold for mean cosine similarity.")
+    parser.add_argument("--threshold", type=float, default=None, help="Pass threshold for mean cosine similarity.")
     parser.add_argument("--output-json", type=Path, default=None)
     parser.add_argument("--fail-on-threshold", action="store_true")
     parser.add_argument("--prefer-cpu", action="store_true")
@@ -175,13 +181,18 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
+    thresholds = load_thresholds(project_root=Path.cwd())
+    default_threshold = float(thresholds["face_similarity"]["pass_threshold"])
+    threshold = args.threshold if args.threshold is not None else default_threshold
+
     result = evaluate_face_similarity(
         generated_dir=args.generated,
         reference_dir=args.reference,
-        threshold=args.threshold,
+        threshold=threshold,
         prefer_cpu=args.prefer_cpu,
         skip_install=args.skip_install,
     )
+    result["policy_default_threshold"] = default_threshold
 
     if args.output_json:
         args.output_json.parent.mkdir(parents=True, exist_ok=True)
@@ -195,4 +206,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

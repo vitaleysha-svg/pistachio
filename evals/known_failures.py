@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import importlib
 import importlib.metadata
 import json
@@ -14,10 +15,17 @@ import sys
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
+SCRIPT_DIR = Path(__file__).resolve().parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
+from load_thresholds import _fallback_safe_load, load_thresholds
+
 PACKAGE_TO_IMPORT = {
     "Pillow": "PIL",
     "opencv-python-headless": "cv2",
     "onnxruntime-gpu": "onnxruntime",
+    "pyyaml": "yaml",
 }
 
 BANNED_REFERENCE_SNIPPETS = [
@@ -266,6 +274,128 @@ def context_budget_test(project_root: Path) -> TestResult:
     return TestResult("context_budget_test", True, "Startup context under budget")
 
 
+def threshold_policy_test(project_root: Path) -> TestResult:
+    path = project_root / "evals" / "thresholds.yaml"
+    if not path.exists():
+        return TestResult("threshold_policy_test", False, f"Missing threshold policy: {path}")
+
+    text = path.read_text(encoding="utf-8", errors="ignore")
+    try:
+        import yaml  # type: ignore
+
+        parsed = yaml.safe_load(text)
+    except ImportError:
+        try:
+            parsed = _fallback_safe_load(text)
+        except Exception as exc:  # noqa: BLE001
+            return TestResult("threshold_policy_test", False, f"Invalid fallback YAML parse: {exc}")
+    except Exception as exc:  # noqa: BLE001
+        return TestResult("threshold_policy_test", False, f"Invalid YAML syntax: {exc}")
+
+    if not isinstance(parsed, dict):
+        return TestResult("threshold_policy_test", False, "thresholds.yaml did not parse to a mapping")
+
+    try:
+        thresholds = load_thresholds(project_root=project_root, thresholds_path=path)
+    except Exception as exc:  # noqa: BLE001
+        return TestResult("threshold_policy_test", False, f"Invalid threshold YAML: {exc}")
+
+    required = {
+        "face_similarity": ["pass_threshold", "warn_threshold", "metric", "description"],
+        "skin_realism": [
+            "texture_pass_threshold",
+            "color_naturalness_pass_threshold",
+            "overall_pass_threshold",
+            "description",
+        ],
+        "scorecard": ["grade_boundaries", "promotion_minimum_grade", "description"],
+        "context_budget": [
+            "claude_md_max_lines",
+            "goals_max_lines",
+            "patterns_max_lines",
+            "session_learnings_max_lines",
+            "total_max_lines",
+        ],
+        "freshness": ["max_age_days", "ci_max_age_days"],
+    }
+
+    missing: list[str] = []
+    for section, keys in required.items():
+        if section not in thresholds:
+            missing.append(section)
+            continue
+        for key in keys:
+            if key not in thresholds[section]:
+                missing.append(f"{section}.{key}")
+
+    grade_boundaries = thresholds.get("scorecard", {}).get("grade_boundaries", {})
+    for grade in ["A", "B", "C", "D", "F"]:
+        if grade not in grade_boundaries:
+            missing.append(f"scorecard.grade_boundaries.{grade}")
+
+    if missing:
+        return TestResult("threshold_policy_test", False, "Missing policy keys: " + ", ".join(missing))
+    return TestResult("threshold_policy_test", True, "Threshold policy YAML valid with required keys")
+
+
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def dataset_manifest_test(project_root: Path) -> TestResult:
+    manifests = sorted(project_root.rglob("dataset_manifest.json"), key=lambda p: p.stat().st_mtime)
+    if not manifests:
+        return TestResult("dataset_manifest_test", True, "No dataset manifest found; skipping integrity check")
+
+    manifest_path = manifests[-1]
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except Exception as exc:  # noqa: BLE001
+        return TestResult("dataset_manifest_test", False, f"Invalid JSON in {manifest_path}: {exc}")
+
+    dataset_dir_value = manifest.get("dataset_dir")
+    if not dataset_dir_value:
+        return TestResult("dataset_manifest_test", False, f"dataset_dir missing in {manifest_path}")
+    dataset_dir = Path(dataset_dir_value)
+    if not dataset_dir.is_absolute():
+        dataset_dir = (manifest_path.parent / dataset_dir).resolve()
+
+    failures: list[str] = []
+    for item in manifest.get("images", []):
+        rel_file = item.get("filename")
+        expected_hash = item.get("sha256")
+        if not rel_file or not expected_hash:
+            failures.append(f"invalid item entry in manifest: {item}")
+            continue
+
+        image_path = (dataset_dir / rel_file).resolve()
+        if not image_path.exists():
+            failures.append(f"missing image: {rel_file}")
+            continue
+        actual_hash = sha256_file(image_path)
+        if actual_hash != expected_hash:
+            failures.append(f"hash mismatch image: {rel_file}")
+
+        caption_rel = item.get("caption_file")
+        caption_hash = item.get("caption_sha256")
+        if caption_rel and caption_hash:
+            caption_path = (dataset_dir / caption_rel).resolve()
+            if not caption_path.exists():
+                failures.append(f"missing caption: {caption_rel}")
+            elif sha256_file(caption_path) != caption_hash:
+                failures.append(f"hash mismatch caption: {caption_rel}")
+
+    if failures:
+        preview = "; ".join(failures[:10])
+        more = "" if len(failures) <= 10 else f" (+{len(failures)-10} more)"
+        return TestResult("dataset_manifest_test", False, preview + more)
+    return TestResult("dataset_manifest_test", True, f"Manifest integrity verified: {manifest_path}")
+
+
 def script_syntax_test(project_root: Path) -> TestResult:
     failures: list[str] = []
     checked = 0
@@ -303,7 +433,9 @@ def main() -> int:
         dependency_chain_test(root, strict_runtime=args.strict_runtime_deps),
         training_flag_test(root),
         stale_reference_test(root),
+        threshold_policy_test(root),
         context_budget_test(root),
+        dataset_manifest_test(root),
         script_syntax_test(root),
     ]
 

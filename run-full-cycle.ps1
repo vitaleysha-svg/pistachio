@@ -7,6 +7,19 @@ param(
   [string]$RunId = "",
   [string]$Notes = "",
   [double]$MaxAgeDays = 7.0,
+  [switch]$SkipCostTracking,
+  [string]$CostActivity = "autonomous_loop",
+  [string]$CompareWithRunId = "",
+  [string]$TrainingDatasetDir = "",
+  [string]$TrainingOutputDir = "",
+  [string]$DatasetManifestOut = "",
+  [switch]$RunProduction,
+  [string]$ProductionWorkflow = "",
+  [string]$ProductionPrompts = "",
+  [int]$ProductionCount = 5,
+  [string]$ProductionOutputDir = "",
+  [string]$ProductionReferenceDir = "",
+  [string]$ProductionLora = "",
   [switch]$SkipCommit,
   [switch]$DryRun
 )
@@ -45,6 +58,45 @@ if ($RunId) {
 }
 if ($Notes) {
   $cmd += @("--notes", $Notes)
+}
+if ($SkipCostTracking) {
+  $cmd += "--skip-cost-tracking"
+}
+if ($CostActivity) {
+  $cmd += @("--cost-activity", $CostActivity)
+}
+if ($CompareWithRunId) {
+  $cmd += @("--compare-with-run-id", $CompareWithRunId)
+}
+if ($TrainingDatasetDir) {
+  $cmd += @("--training-dataset-dir", $TrainingDatasetDir)
+}
+if ($TrainingOutputDir) {
+  $cmd += @("--training-output-dir", $TrainingOutputDir)
+}
+if ($DatasetManifestOut) {
+  $cmd += @("--dataset-manifest-out", $DatasetManifestOut)
+}
+if ($RunProduction) {
+  $cmd += "--run-production"
+  if ($ProductionWorkflow) {
+    $cmd += @("--production-workflow", $ProductionWorkflow)
+  }
+  if ($ProductionPrompts) {
+    $cmd += @("--production-prompts", $ProductionPrompts)
+  }
+  if ($ProductionCount -gt 0) {
+    $cmd += @("--production-count", "$ProductionCount")
+  }
+  if ($ProductionOutputDir) {
+    $cmd += @("--production-output-dir", $ProductionOutputDir)
+  }
+  if ($ProductionReferenceDir) {
+    $cmd += @("--production-reference-dir", $ProductionReferenceDir)
+  }
+  if ($ProductionLora) {
+    $cmd += @("--production-lora", $ProductionLora)
+  }
 }
 if ($SkipCommit) {
   $cmd += "--skip-commit"

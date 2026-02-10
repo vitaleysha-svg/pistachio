@@ -12,6 +12,12 @@ import sys
 from pathlib import Path
 from typing import Any
 
+SCRIPT_DIR = Path(__file__).resolve().parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
+from load_thresholds import load_thresholds
+
 REQUIRED_PACKAGES = {
     "numpy": "1.26.4",
     "opencv-python-headless": "4.9.0.80",
@@ -100,6 +106,8 @@ def evaluate_skin_realism(
     generated_dir: Path,
     reference_dir: Path,
     threshold: float = 0.60,
+    texture_threshold: float = 0.60,
+    color_threshold: float = 0.55,
     skip_install: bool = False,
 ) -> dict[str, Any]:
     ensure_dependencies(skip_install=skip_install)
@@ -161,16 +169,24 @@ def evaluate_skin_realism(
     texture_mean = sum(item["texture_score"] for item in per_image) / len(per_image)
     color_mean = sum(item["color_naturalness_score"] for item in per_image) / len(per_image)
     overall_mean = sum(item["overall_realism_score"] for item in per_image) / len(per_image)
+    texture_pass = texture_mean >= texture_threshold
+    color_pass = color_mean >= color_threshold
+    overall_pass = overall_mean >= threshold
 
     return {
         "generated_dir": str(generated_dir),
         "reference_dir": str(reference_dir),
         "threshold": threshold,
+        "texture_threshold": texture_threshold,
+        "color_naturalness_threshold": color_threshold,
         "images_evaluated": len(per_image),
         "texture_score_mean": texture_mean,
         "color_naturalness_score_mean": color_mean,
         "overall_realism_score_mean": overall_mean,
-        "pass": overall_mean >= threshold,
+        "texture_pass": texture_pass,
+        "color_naturalness_pass": color_pass,
+        "overall_pass": overall_pass,
+        "pass": texture_pass and color_pass and overall_pass,
         "per_image": per_image,
     }
 
@@ -179,7 +195,9 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Evaluate skin texture and color realism against references.")
     parser.add_argument("--generated", type=Path, required=True, help="Directory of generated images.")
     parser.add_argument("--reference", type=Path, required=True, help="Directory of reference images.")
-    parser.add_argument("--threshold", type=float, default=0.60)
+    parser.add_argument("--threshold", type=float, default=None, help="Overall realism pass threshold.")
+    parser.add_argument("--texture-threshold", type=float, default=None)
+    parser.add_argument("--color-threshold", type=float, default=None)
     parser.add_argument("--output-json", type=Path, default=None)
     parser.add_argument("--fail-on-threshold", action="store_true")
     parser.add_argument("--skip-install", action="store_true")
@@ -188,12 +206,35 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
+    thresholds = load_thresholds(project_root=Path.cwd())
+    skin_policy = thresholds["skin_realism"]
+    overall_threshold = (
+        args.threshold if args.threshold is not None else float(skin_policy["overall_pass_threshold"])
+    )
+    texture_threshold = (
+        args.texture_threshold
+        if args.texture_threshold is not None
+        else float(skin_policy["texture_pass_threshold"])
+    )
+    color_threshold = (
+        args.color_threshold
+        if args.color_threshold is not None
+        else float(skin_policy["color_naturalness_pass_threshold"])
+    )
+
     result = evaluate_skin_realism(
         generated_dir=args.generated,
         reference_dir=args.reference,
-        threshold=args.threshold,
+        threshold=overall_threshold,
+        texture_threshold=texture_threshold,
+        color_threshold=color_threshold,
         skip_install=args.skip_install,
     )
+    result["policy_defaults"] = {
+        "overall": float(skin_policy["overall_pass_threshold"]),
+        "texture": float(skin_policy["texture_pass_threshold"]),
+        "color": float(skin_policy["color_naturalness_pass_threshold"]),
+    }
 
     if args.output_json:
         args.output_json.parent.mkdir(parents=True, exist_ok=True)
@@ -207,4 +248,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

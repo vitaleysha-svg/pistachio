@@ -123,7 +123,6 @@ def run_agent_step(project_root: Path, agent_prompt: Path, dry_run: bool) -> Non
         run_command("autonomous_agent", ["bash", str(sh_launcher)], cwd=project_root, dry_run=dry_run, env=env)
         return
 
-    # Fallback: call claude directly if launchers are unavailable.
     if not shutil.which("claude"):
         raise StepError("autonomous_agent failed: neither launcher nor 'claude' command is available.")
     prompt = agent_prompt.read_text(encoding="utf-8")
@@ -160,7 +159,7 @@ def commit_results(project_root: Path, dry_run: bool, message: str) -> None:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Run complete Phase 2 autonomous cycle.")
+    parser = argparse.ArgumentParser(description="Run complete autonomous cycle.")
     parser.add_argument("--project-root", type=Path, default=Path.cwd())
     parser.add_argument("--agent-prompt", type=Path, default=Path("agents/pistachio-agent-v3.md"))
     parser.add_argument("--generated-dir", type=Path, default=None, help="Optional override for generated images dir.")
@@ -171,6 +170,22 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-age-days", type=float, default=7.0)
     parser.add_argument("--skip-commit", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--skip-cost-tracking", action="store_true")
+    parser.add_argument("--cost-activity", default="autonomous_loop")
+    parser.add_argument("--cost-rate-per-hr", type=float, default=0.60)
+    parser.add_argument("--cost-gpu", default="RTX 4090")
+    parser.add_argument("--training-dataset-dir", type=Path, default=None)
+    parser.add_argument("--training-output-dir", type=Path, default=None)
+    parser.add_argument("--dataset-manifest-out", type=Path, default=None)
+    parser.add_argument("--compare-with-run-id", default=None)
+    parser.add_argument("--comparison-output", type=Path, default=Path("evals/comparison_report.md"))
+    parser.add_argument("--run-production", action="store_true")
+    parser.add_argument("--production-workflow", type=Path, default=None)
+    parser.add_argument("--production-prompts", type=Path, default=None)
+    parser.add_argument("--production-count", type=int, default=5)
+    parser.add_argument("--production-output-dir", type=Path, default=None)
+    parser.add_argument("--production-reference-dir", type=Path, default=None)
+    parser.add_argument("--production-lora", default=None)
     parser.add_argument(
         "--commit-message",
         default=f"Full cycle automation update ({datetime.now(timezone.utc).strftime('%Y-%m-%d')})",
@@ -190,6 +205,11 @@ def main() -> int:
 
     if not agent_prompt.exists():
         raise SystemExit(f"Agent prompt not found: {agent_prompt}")
+
+    manifest_path: Path | None = None
+    scorecard_run_id = args.run_id or f"{args.lora_version}_sweep_{datetime.now(timezone.utc).strftime('%Y-%m-%d')}"
+    agent_failed = False
+    cost_started = False
 
     try:
         run_command(
@@ -224,7 +244,72 @@ def main() -> int:
             dry_run=args.dry_run,
         )
 
-        run_agent_step(project_root=project_root, agent_prompt=agent_prompt, dry_run=args.dry_run)
+        if args.training_dataset_dir and args.training_output_dir:
+            dataset_dir = args.training_dataset_dir.resolve()
+            training_output_dir = args.training_output_dir.resolve()
+            manifest_path = (
+                args.dataset_manifest_out.resolve()
+                if args.dataset_manifest_out
+                else training_output_dir / "dataset_manifest.json"
+            )
+            run_command(
+                "dataset_manifest",
+                [
+                    python_cmd,
+                    str(project_root / "tools" / "dataset_manifest.py"),
+                    "--dataset-dir",
+                    str(dataset_dir),
+                    "--output",
+                    str(manifest_path),
+                ],
+                cwd=project_root,
+                dry_run=args.dry_run,
+            )
+
+        if not args.skip_cost_tracking:
+            run_command(
+                "cost_start",
+                [
+                    python_cmd,
+                    str(project_root / "tools" / "runpod_cost_tracker.py"),
+                    "--action",
+                    "start",
+                    "--activity",
+                    args.cost_activity,
+                    "--rate-per-hr",
+                    str(args.cost_rate_per_hr),
+                    "--gpu",
+                    args.cost_gpu,
+                ],
+                cwd=project_root,
+                dry_run=args.dry_run,
+            )
+            cost_started = True
+
+        try:
+            run_agent_step(project_root=project_root, agent_prompt=agent_prompt, dry_run=args.dry_run)
+        except Exception:  # noqa: BLE001
+            agent_failed = True
+            raise
+        finally:
+            if cost_started:
+                try:
+                    run_command(
+                        "cost_stop",
+                        [
+                            python_cmd,
+                            str(project_root / "tools" / "runpod_cost_tracker.py"),
+                            "--action",
+                            "stop",
+                        ],
+                        cwd=project_root,
+                        dry_run=args.dry_run,
+                    )
+                except StepError as exc:
+                    if agent_failed:
+                        print(f"[warn] cost_stop failed after agent failure: {exc}")
+                    else:
+                        raise
 
         run_command(
             "promote_findings",
@@ -233,6 +318,7 @@ def main() -> int:
             dry_run=args.dry_run,
         )
 
+        scorecard_generated = False
         if args.dry_run:
             print("[step] eval_scorecard")
             print("       [dry-run] generation/eval detection skipped")
@@ -250,15 +336,75 @@ def main() -> int:
                     str(reference_dir),
                     "--lora-version",
                     args.lora_version,
+                    "--run-id",
+                    scorecard_run_id,
                     "--notes",
                     args.notes,
                 ]
-                if args.run_id:
-                    scorecard_cmd.extend(["--run-id", args.run_id])
+                if manifest_path is not None:
+                    scorecard_cmd.extend(["--dataset-manifest", str(manifest_path)])
                 run_command("eval_scorecard", scorecard_cmd, cwd=project_root, dry_run=False)
+                scorecard_generated = True
             else:
                 print("[step] eval_scorecard")
                 print("       No new generated images (or no reference set) detected, skipping eval step.")
+
+        if scorecard_generated and args.compare_with_run_id:
+            run_command(
+                "compare_versions",
+                [
+                    python_cmd,
+                    str(project_root / "evals" / "compare_versions.py"),
+                    "--history",
+                    str(project_root / "evals" / "eval_history.jsonl"),
+                    "--v1",
+                    args.compare_with_run_id,
+                    "--v2",
+                    scorecard_run_id,
+                    "--output",
+                    str(args.comparison_output.resolve()),
+                ],
+                cwd=project_root,
+                dry_run=args.dry_run,
+            )
+
+        if args.run_production:
+            if args.production_workflow is None:
+                raise StepError("--run-production requires --production-workflow")
+            production_output = (
+                args.production_output_dir.resolve()
+                if args.production_output_dir
+                else (project_root / "outputs" / f"production_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}")
+            )
+            production_reference = (
+                args.production_reference_dir.resolve()
+                if args.production_reference_dir
+                else (args.reference_dir.resolve() if args.reference_dir else detect_reference_dir(project_root))
+            )
+            if production_reference is None:
+                raise StepError("--run-production could not resolve reference directory")
+
+            production_cmd = [
+                python_cmd,
+                str(project_root / "tools" / "production_pipeline.py"),
+                "--project-root",
+                str(project_root),
+                "--workflow",
+                str(args.production_workflow.resolve()),
+                "--lora",
+                args.production_lora or f"{args.lora_version}.safetensors",
+                "--lora-version",
+                args.lora_version,
+                "--count",
+                str(args.production_count),
+                "--output-dir",
+                str(production_output),
+                "--reference-dir",
+                str(production_reference),
+            ]
+            if args.production_prompts is not None:
+                production_cmd.extend(["--prompts", str(args.production_prompts.resolve())])
+            run_command("production_pipeline", production_cmd, cwd=project_root, dry_run=args.dry_run)
 
         if not args.skip_commit:
             commit_results(project_root=project_root, dry_run=args.dry_run, message=args.commit_message)

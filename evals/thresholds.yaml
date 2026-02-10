@@ -1,0 +1,36 @@
+# Centralized pass/fail policy for all evals
+# Edit this file to adjust quality gates - all eval scripts read from here
+
+face_similarity:
+  pass_threshold: 0.60
+  warn_threshold: 0.50
+  metric: cosine_similarity
+  description: "InsightFace embedding cosine similarity between generated and reference faces"
+
+skin_realism:
+  texture_pass_threshold: 0.60
+  color_naturalness_pass_threshold: 0.55
+  overall_pass_threshold: 0.60
+  description: "Laplacian variance + skin-tone histogram comparison"
+
+scorecard:
+  grade_boundaries:
+    A: 0.85
+    B: 0.70
+    C: 0.55
+    D: 0.40
+    F: 0.0
+  promotion_minimum_grade: "C"
+  description: "Combined face similarity + skin realism weighted average"
+
+context_budget:
+  claude_md_max_lines: 120
+  goals_max_lines: 10
+  patterns_max_lines: 10
+  session_learnings_max_lines: 80
+  total_max_lines: 220
+
+freshness:
+  max_age_days: 7
+  ci_max_age_days: 14
+
