@@ -34,7 +34,9 @@ from pathlib import Path
 SDXL_CHECKPOINT_CANDIDATES = [
     "/workspace/models/sd_xl_base_1.0.safetensors",
     "/workspace/runpod-slim/ComfyUI/models/checkpoints/sd_xl_base_1.0.safetensors",
+    "/workspace/runpod-slim/ComfyUI/models/checkpoints/realvisxl_v5.safetensors",
     "/workspace/ComfyUI/models/checkpoints/sd_xl_base_1.0.safetensors",
+    "/workspace/ComfyUI/models/checkpoints/realvisxl_v5.safetensors",
 ]
 
 TRAINING_IMAGE_CANDIDATES = [
