@@ -184,6 +184,29 @@ def count_images(path: str) -> int:
 # Phases
 # ---------------------------------------------------------------------------
 
+def fix_dependencies() -> None:
+    """Pin huggingface_hub + diffusers to versions compatible with sd-scripts."""
+    print("\n=== Fixing dependency versions ===")
+    pkgs = [
+        "huggingface_hub==0.21.4",
+        "diffusers==0.25.1",
+        "transformers==4.38.2",
+        "accelerate==0.27.2",
+    ]
+    rc = subprocess.run(
+        [sys.executable, "-m", "pip", "install", "--force-reinstall"] + pkgs,
+        capture_output=True, text=True,
+    )
+    if rc.returncode == 0:
+        print("  [ok] Dependencies pinned")
+    else:
+        # Show last few lines of error output
+        err_lines = (rc.stderr or rc.stdout or "").strip().split("\n")
+        for line in err_lines[-5:]:
+            print(f"  {line}")
+        print("  [warn] Dependency fix had issues, trying to continue anyway")
+
+
 def phase_train(args: argparse.Namespace, paths: dict[str, str]) -> bool:
     """Phase 1: Install deps + auto-caption + train LoRA v3."""
     print("\n" + "=" * 60)
@@ -192,6 +215,9 @@ def phase_train(args: argparse.Namespace, paths: dict[str, str]) -> bool:
     print("=" * 60)
 
     project_root = Path(args.project_root)
+
+    # Fix known version conflicts before anything else
+    fix_dependencies()
 
     # Validate required paths
     missing = []
