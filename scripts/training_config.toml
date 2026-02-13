@@ -1,0 +1,74 @@
+# ============================================================
+# PISTACHIO — DiffusionPipe Training Config (Wan 2.1 T2V-14B)
+# Optimized for RTX/budget GPUs (24-48GB VRAM)
+# ============================================================
+
+# --- OUTPUT ---
+output_dir = '/workspace/training_output'
+
+# --- DATASET ---
+dataset = '/workspace/diffusion-pipe/examples/dataset_config.toml'
+eval_datasets = [
+    {name = 'eval', config = '/workspace/diffusion-pipe/examples/eval_dataset_config.toml'},
+]
+
+# --- TRAINING SETTINGS ---
+epochs = 1000
+micro_batch_size_per_gpu = 1
+pipeline_stages = 1
+gradient_accumulation_steps = 4
+gradient_clipping = 1.0
+warmup_steps = 10
+
+# --- MEMORY OPTIMIZATION (for 24-48GB GPUs) ---
+activation_checkpointing = true
+blocks_to_swap = 24
+caching_batch_size = 1
+partition_method = 'parameters'
+
+# --- EVAL SETTINGS ---
+eval_every_n_epochs = 1
+eval_before_first_step = true
+eval_micro_batch_size_per_gpu = 1
+eval_gradient_accumulation_steps = 1
+
+# --- SAVING ---
+save_every_n_steps = 50
+save_dtype = 'bfloat16'
+checkpoint_every_n_minutes = 120
+steps_per_print = 1
+
+# --- MISC ---
+video_clip_mode = 'single_beginning'
+
+# --- MODEL ---
+[model]
+type = 'wan'
+ckpt_path = '/workspace/models/wan/Wan2.1-T2V-14B'
+transformer_path = '/workspace/models/wan/wan2.1_t2v_14B_fp16.safetensors'
+llm_path = '/workspace/models/wan/umt5_xxl_fp8_e4m3fn_scaled.safetensors'
+dtype = 'bfloat16'
+transformer_dtype = 'float8'
+timestep_sample_method = 'logit_normal'
+
+# --- LORA ADAPTER ---
+[adapter]
+type = 'lora'
+rank = 32
+dtype = 'bfloat16'
+
+# --- OPTIMIZER (8-bit for lower VRAM) ---
+[optimizer]
+type = 'AdamW8bitKahan'
+lr = 2e-5
+betas = [0.9, 0.99]
+weight_decay = 0.01
+stabilize = false
+
+# --- MONITORING (wandb) ---
+# Create free account at wandb.ai and get your API key
+[monitoring]
+enable_wandb = true
+wandb_api_key = 'PASTE_YOUR_WANDB_API_KEY_HERE'
+wandb_tracker_name = 'pistachio-lora'
+wandb_run_name = 'run1'

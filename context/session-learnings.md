@@ -31,6 +31,14 @@
 28. Archive historical learnings; keep active rules concise.
 29. Update this critical section when a pattern proves durable.
 30. Never repeat a documented mistake.
+31. At 5% context remaining, STOP all work and save full state to PROGRESS.md before auto-compact.
+32. Pod migrations lose pip packages and authorized_keys — startup script must reinstall everything.
+33. Always run Python scripts with `-u` flag on pod for unbuffered output in logs.
+34. FaceID similarity ceiling is ~0.52 max. InstantID + LoRA reaches 0.73.
+35. User wants reusable ComfyUI workflow files (.json) they can load in the UI — always export winning configs.
+36. Generated images must vary in pose/angle — don't use same composition across all prompts.
+37. Auto-run quality checks (InsightFace similarity + face detection) on every generation batch.
+38. User preference: research on BlackHat, Reddit, CivitAI for real-world techniques.
 
 ## Historical Archive (On-Demand)
 Detailed historical notes moved to `context/archive/session-learnings-history.md`.
