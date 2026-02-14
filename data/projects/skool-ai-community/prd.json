@@ -1,0 +1,186 @@
+{
+  "name": "Skool AI Community MVP",
+  "version": "2.1",
+  "owner": "Matt",
+  "status": "ready_for_review",
+  "mvp_definition": {
+    "price_floor": 39,
+    "avatar": "non-technical operators",
+    "required_outcomes": [
+      "5-minute win in browser",
+      "Modules 1-3 produce working personal CoS system",
+      "7-day onboarding completion path"
+    ]
+  },
+  "phases": [
+    {
+      "id": "P0",
+      "name": "Control Layer",
+      "tasks": [
+        {
+          "id": "P0-T1",
+          "title": "Lock MVP scope and done criteria",
+          "priority": "P0",
+          "owner": "orchestrator",
+          "status": "done",
+          "passes": true
+        },
+        {
+          "id": "P0-T2",
+          "title": "Create source-of-truth map from Matt corpus",
+          "priority": "P0",
+          "owner": "orchestrator",
+          "status": "done",
+          "passes": true
+        }
+      ]
+    },
+    {
+      "id": "P1",
+      "name": "Curriculum",
+      "tasks": [
+        {
+          "id": "P1-T1",
+          "title": "Module 1 package",
+          "priority": "P0",
+          "owner": "course_creator",
+          "status": "done",
+          "passes": true
+        },
+        {
+          "id": "P1-T2",
+          "title": "Modules 2-3 packages",
+          "priority": "P0",
+          "owner": "course_creator",
+          "status": "done",
+          "passes": true
+        },
+        {
+          "id": "P1-T3",
+          "title": "Modules 4-10 packages",
+          "priority": "P1",
+          "owner": "course_creator",
+          "status": "done",
+          "passes": true
+        },
+        {
+          "id": "P1-T4",
+          "title": "Starter kit templates",
+          "priority": "P0",
+          "owner": "template_builder",
+          "status": "done",
+          "passes": true
+        }
+      ]
+    },
+    {
+      "id": "P2",
+      "name": "Launch Assets",
+      "tasks": [
+        {
+          "id": "P2-T1",
+          "title": "VSL script",
+          "priority": "P0",
+          "owner": "marketing_writer",
+          "status": "done",
+          "passes": true
+        },
+        {
+          "id": "P2-T2",
+          "title": "Skool page copy",
+          "priority": "P0",
+          "owner": "marketing_writer",
+          "status": "done",
+          "passes": true
+        },
+        {
+          "id": "P2-T3",
+          "title": "YouTube launch scripts (long + 5 shorts)",
+          "priority": "P1",
+          "owner": "content_writer",
+          "status": "done",
+          "passes": true
+        },
+        {
+          "id": "P2-T4",
+          "title": "Email sequence set",
+          "priority": "P1",
+          "owner": "marketing_writer",
+          "status": "done",
+          "passes": true
+        }
+      ]
+    },
+    {
+      "id": "P3",
+      "name": "Operations",
+      "tasks": [
+        {
+          "id": "P3-T1",
+          "title": "Community operations docs",
+          "priority": "P0",
+          "owner": "ops",
+          "status": "done",
+          "passes": true
+        },
+        {
+          "id": "P3-T2",
+          "title": "Launch readiness checklist",
+          "priority": "P0",
+          "owner": "ops",
+          "status": "done",
+          "passes": true
+        },
+        {
+          "id": "P3-T3",
+          "title": "Metrics + rollback framework",
+          "priority": "P1",
+          "owner": "ops",
+          "status": "done",
+          "passes": true
+        }
+      ]
+    },
+    {
+      "id": "P4",
+      "name": "Orchestration",
+      "tasks": [
+        {
+          "id": "P4-T1",
+          "title": "Practical orchestration runbook",
+          "priority": "P1",
+          "owner": "orchestrator",
+          "status": "done",
+          "passes": true
+        },
+        {
+          "id": "P4-T2",
+          "title": "Worker assignment task files",
+          "priority": "P2",
+          "owner": "orchestrator",
+          "status": "done",
+          "passes": true
+        }
+      ]
+    },
+    {
+      "id": "P5",
+      "name": "Deferred",
+      "tasks": [
+        {
+          "id": "P5-T1",
+          "title": "One-click installer",
+          "priority": "P2",
+          "owner": "installer_engineer",
+          "status": "backlog",
+          "passes": false
+        }
+      ]
+    }
+  ],
+  "completion_rule": "Launch only when all P0 tasks pass and launch-readiness checklist P0 items are fully checked.",
+  "notes": [
+    "Installer intentionally deferred for MVP.",
+    "All content anchored to SOURCE-OF-TRUTH.md."
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "name": "Autonomous Sprint",
+  "owner": "<your_name>",
+  "goal": "<one concrete outcome>",
+  "scope": [
+    "<allowed area 1>",
+    "<allowed area 2>"
+  ],
+  "out_of_scope": [
+    "<explicitly blocked area>"
+  ],
+  "deliverables": [
+    "<file or artifact 1>",
+    "<file or artifact 2>"
+  ],
+  "verification": [
+    "<test or check 1>",
+    "<test or check 2>"
+  ],
+  "timebox_minutes": 60,
+  "stop_conditions": [
+    "Unhandled error",
+    "Scope breach",
+    "Verification failed"
+  ],
+  "handoff_required": true
+}
